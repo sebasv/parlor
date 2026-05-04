@@ -1,0 +1,148 @@
+:root {
+  --bg: #0f1115;
+  --bg-elev: #1a1d24;
+  --fg: #e6e6e6;
+  --fg-dim: #9aa0a6;
+  --accent: #6cb1ff;
+  --danger: #ff6b6b;
+  --radius: 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-elev);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.6em 1em;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+input[type="text"] {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-elev);
+  border: 1px solid #2a2f38;
+  border-radius: var(--radius);
+  padding: 0.6em 0.9em;
+  min-width: 0;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.roster-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.roster-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  background: var(--bg-elev);
+  padding: 0.4em 0.8em;
+  border-radius: 999px;
+}
+
+.roster-list button {
+  padding: 0.1em 0.5em;
+  background: transparent;
+  color: var(--fg-dim);
+}
+
+.roster form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.roster form input {
+  flex: 1;
+}
+
+.game-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.game-card {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 0.25em;
+  padding: 1em;
+}
+
+.game-card h3 {
+  margin: 0;
+}
+
+.game-card p {
+  margin: 0;
+  color: var(--fg-dim);
+  font-size: 0.9em;
+}
+
+.game-card small {
+  color: var(--fg-dim);
+}
+
+.game-host {
+  display: grid;
+  gap: 1rem;
+}
+
+.game-host header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.game-host header h2 {
+  margin: 0;
+}
+
+.game-root {
+  min-height: 50vh;
+}
