@@ -18,32 +18,45 @@ src/
   styles.css         shell styles
   shell/             Solid components for the shell only
   games/
-    registry.ts      list of games; each entry uses dynamic import
-    <game-id>/       one folder per game; default-exports a GameModule
+    registry.ts      glob-based discovery — no edits needed when adding games
+    <game-id>/
+      meta.ts        default-exports GameMeta (id, title, description, min/maxPlayers)
+      index.ts       default-exports GameModule (meta + mount fn)
   lib/
-    game.ts          GameModule + GameContext interfaces
+    game.ts          GameMeta + GameModule + GameContext interfaces
     storage.ts       persistence helpers
 ```
 
 ### Game contract
 
-Each game default-exports a `GameModule` from `src/lib/game.ts`:
+Each game has two files:
+
+- `meta.ts` — default-exports a `GameMeta` (eagerly imported by the registry; tiny, no game logic).
+- `index.ts` — default-exports a `GameModule` (lazy-loaded as its own Vite chunk).
 
 ```ts
-{
-  id, title, description, minPlayers, maxPlayers,
-  mount(root: HTMLElement, ctx: { players, onExit }): cleanup
+// meta.ts
+const meta: GameMeta = { id, title, description, minPlayers, maxPlayers }
+export default meta
+
+// index.ts
+const game: GameModule = {
+  ...meta,
+  mount(root: HTMLElement, ctx: { players, onExit }) {
+    // build DOM inside root, wire listeners
+    return () => {
+      // cleanup: remove DOM, cancel timers / rAF / listeners
+    }
+  },
 }
+export default game
 ```
 
-The shell hands the game an empty `<div>` to own. The game returns a cleanup function that removes its DOM and cancels any timers / animation frames / event listeners. The shell never touches game DOM directly. This keeps each game self-contained and framework-agnostic — a game can use Solid, plain DOM, or a `<canvas>` render loop without affecting the shell.
+The shell hands the game an empty `<div>` to own. The game returns a cleanup function. The shell never touches game DOM directly — a game can use Solid, plain DOM, or `<canvas>` independently of the shell.
 
-Games are loaded via dynamic `import()` so each becomes its own Vite chunk and is only fetched when picked.
+**Adding a game:** create `src/games/<game-id>/meta.ts` and `src/games/<game-id>/index.ts`. The registry uses `import.meta.glob` to auto-discover them. No registry edits.
 
-To add a game:
-
-1. Create `src/games/<game-id>/index.ts` exporting a `GameModule` as default.
-2. Add an entry to `src/games/registry.ts`.
+See `src/games/placeholder/` for a minimal working example.
 
 ## Commands
 

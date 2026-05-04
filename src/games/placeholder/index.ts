@@ -1,11 +1,8 @@
 import type { GameModule } from '../../lib/game'
+import meta from './meta'
 
 const game: GameModule = {
-  id: 'placeholder',
-  title: 'Placeholder',
-  description: 'Hello-world game used to verify the shell wiring.',
-  minPlayers: 1,
-  maxPlayers: 8,
+  ...meta,
 
   mount(root, ctx) {
     const el = document.createElement('div')
