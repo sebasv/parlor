@@ -11,6 +11,8 @@
     "check:fix": "biome check --write"
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
+    "chessground": "^9.2.1",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {
