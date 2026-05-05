@@ -155,3 +155,17 @@ is the tile centre (TILE_SIZE/2, TILE_SIZE/2). This gives a gentle S-curve appea
 7. **Curved paths with better aesthetics** — avoid all 4 curves meeting at the exact
    same centre point.
 8. **Sound effects / haptics** — subtle feedback on tile placement and pawn movement.
+
+## Bug Fix: "Cannot place tile" (fix/tsuro-interactions)
+
+**Root cause:** Pawns were initialised *on* the board edge tiles with outward-facing ports
+(e.g. port 0 for the top edge). `placementSlot()` calls `portDelta(port)` to find the tile
+in front of the pawn, but an outward-facing port on an edge tile pointed *off* the board,
+so the computed slot was out-of-bounds and `handlePlace()` rejected it as invalid.
+
+**Fix:** Pawns now start one step *outside* the board in ghost cells (out-of-bounds col/row)
+with an *inward-facing* port. `portDelta` then steps correctly into the first real tile slot.
+`isEliminated()` was tightened to `col === -1 && row === -1` (the explicit sentinel) so that
+left-edge ghost positions (`col: -1, row: mid+1`) are not mistaken for eliminated pawns.
+`pawnStartCoord()` in the renderer was updated to project the ghost position onto the nearest
+board edge for display.
