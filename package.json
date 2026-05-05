@@ -24,6 +24,6 @@
     "vite-plugin-pwa": "^1.0.4",
     "vite-plugin-solid": "^2.11.12",
     "workbox-window": "^7.4.1",
-    "wrangler": "^4.87.0"
+    "wrangler": "^4.88.0"
   }
 }
