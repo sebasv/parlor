@@ -67,7 +67,7 @@ export function portPosition(port: Port): [number, number] {
 // forward by one side = 2 ports).
 
 export function rotatePort(port: Port, quarterTurns: number): Port {
-  return (((port + quarterTurns * 2) % 8) + 8) as Port
+  return ((((port + quarterTurns * 2) % 8) + 8) % 8) as Port
 }
 
 export function rotateTile(tile: Tile, quarterTurns: number): Tile {

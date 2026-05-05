@@ -156,6 +156,32 @@ is the tile centre (TILE_SIZE/2, TILE_SIZE/2). This gives a gentle S-curve appea
    same centre point.
 8. **Sound effects / haptics** — subtle feedback on tile placement and pawn movement.
 
+## Bug Fix: Blank tiles and unresponsive "Place tile" button (fix/tsuro-rendering)
+
+**Root cause:** `rotatePort()` in `tiles.ts` used `(x % 8) + 8` instead of the correct
+double-modulo `((x % 8) + 8) % 8`. For non-negative inputs (quarterTurns ∈ {0,1,2,3}),
+the raw `% 8` result is already 0–7, so adding 8 without the outer `% 8` produced values
+8–15. Every call to `rotateTile` — including the identity rotation (0 quarter-turns) —
+returned a tile whose port indices were all in the range 8–15.
+
+This caused two visible failures:
+
+1. **Blank tile squares:** `tilePathD` calls `portPosition(port)` which has a `switch` with
+   cases 0–7. Ports 8–15 fall through the switch and return `undefined`, producing SVG path
+   data like `"M undefined undefined Q 45 45 undefined undefined"` — rendered as nothing.
+
+2. **"Place tile" does nothing:** `handlePlace` calls `computePawnWaypoints` which calls
+   `exitPort(rotatedTile, entryPort)`. Because the rotated tile's connections only contain
+   ports 8–15, no match for a valid entry port (0–7) is found, and `exitPort` throws
+   `"Port N not found in tile connections"`. The uncaught exception silently aborted the
+   handler, leaving the board unchanged.
+
+**Fix:** Changed `return (((port + quarterTurns * 2) % 8) + 8) as Port` to
+`return ((((port + quarterTurns * 2) % 8) + 8) % 8) as Port` — the standard
+double-modulo idiom that also handles negative inputs without corrupting non-negative ones.
+The bug was introduced when the `+ 8` guard for negative modulo was added without the
+corresponding outer `% 8` to clamp the result back into range.
+
 ## Bug Fix: "Cannot place tile" (fix/tsuro-interactions)
 
 **Root cause:** Pawns were initialised *on* the board edge tiles with outward-facing ports
