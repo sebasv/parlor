@@ -209,8 +209,6 @@ function buildBoardSVG(): SVGSVGElement {
 
   const svg = svgEl('svg', {
     viewBox: `0 0 ${SVG_W} ${SVG_H}`,
-    width: SVG_W,
-    height: SVG_H,
     role: 'img',
     'aria-label': 'Ludo board',
   })
@@ -365,13 +363,15 @@ const CSS = `
 }
 
 .ludo-board-wrap {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: min(75vw, 700px);
   position: relative;
 }
 
 .ludo-board-wrap svg {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 

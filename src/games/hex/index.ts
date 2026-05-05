@@ -200,12 +200,14 @@ const CSS = `
 .hex-svg-wrap {
   --hex-p0: #ef4444;
   --hex-p1: #6cb1ff;
-  overflow: auto;
-  max-width: 100%;
+  width: 100%;
+  max-width: min(95vw, 90vh, 780px);
 }
 
 .hex-svg {
   display: block;
+  width: 100%;
+  height: auto;
   touch-action: manipulation;
 }
 
@@ -324,8 +326,6 @@ const game: GameModule = {
 
     const svgNS = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(svgNS, 'svg')
-    svg.setAttribute('width', String(svgW))
-    svg.setAttribute('height', String(svgH))
     svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`)
     svg.setAttribute('aria-label', 'Hex board')
     svg.setAttribute('role', 'img')

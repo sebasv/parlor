@@ -117,7 +117,7 @@ const game: GameModule = {
       }
 
       .ch-board-wrap {
-        width: min(94vw, 520px);
+        width: min(94vw, 90vh, 600px);
         aspect-ratio: 1;
         position: relative;
       }

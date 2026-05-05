@@ -216,7 +216,7 @@ const game: GameModule = {
       }
 
       .bg-board-wrap {
-        width: min(96vw, 640px);
+        width: min(96vw, 90vh, 760px);
       }
 
       .bg-board-wrap svg {

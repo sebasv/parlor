@@ -144,7 +144,10 @@ const NIM_CSS = `
 .nim-wrapper {
   display: grid;
   gap: 1.5rem;
-  padding: 1rem 0;
+  padding: 1rem;
+  width: 100%;
+  max-width: min(98vw, 800px);
+  margin: 0 auto;
 }
 
 .nim-status {

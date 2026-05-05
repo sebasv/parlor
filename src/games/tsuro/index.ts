@@ -55,12 +55,14 @@ const CSS = `
 }
 
 .tsuro-board-wrap {
-  overflow: auto;
-  max-width: 100%;
+  width: 100%;
+  max-width: min(95vw, 90vh, 700px);
 }
 
 .tsuro-svg {
   display: block;
+  width: 100%;
+  height: auto;
   touch-action: manipulation;
 }
 
@@ -283,8 +285,6 @@ const game: GameModule = {
     const svgH = MARGIN * 2 + BOARD_ROWS * CELL_SIZE
 
     const svg = document.createElementNS(SVG_NS, 'svg')
-    svg.setAttribute('width', String(svgW))
-    svg.setAttribute('height', String(svgH))
     svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`)
     svg.setAttribute('class', 'tsuro-svg')
     svg.setAttribute('aria-label', 'Tsuro board')

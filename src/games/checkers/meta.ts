@@ -3,6 +3,7 @@ import type { GameMeta } from '../../lib/game'
 const meta: GameMeta = {
   id: 'checkers',
   title: 'Checkers',
+  preferredOrientation: 'landscape',
   description:
     'International Draughts (10×10): flying kings, mandatory captures, and men that capture in both directions. The Dutch standard.',
   minPlayers: 2,

@@ -127,7 +127,11 @@ const CSS = `
   gap: 1rem;
   padding: 0.75rem;
   min-height: 100%;
-  font-size: 1rem;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  max-width: min(100%, 960px);
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ---- Pass screen ---- */

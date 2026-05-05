@@ -351,8 +351,8 @@ function renderGame(
       grid-template-columns: repeat(6, 1fr);
       gap: 4px;
       /* Tablet-first: board fills available space up to a comfortable size */
-      width: min(90vw, 90vh, 480px);
-      height: min(90vw, 90vh, 480px);
+      width: min(90vw, 85vh, 560px);
+      height: min(90vw, 85vh, 560px);
     }
 
     .oc-cell {
