@@ -73,6 +73,10 @@ Wall visual: 2-cell-length colored bar in the gap between cells.
 - Pawn: circle centered in cell.
 - Wall slot hit target: covers the full 2-cell length of the gap.
 
+## Bug fix — out-of-bounds vWalls access on row 8
+
+Root cause: `vWalls` is an 8×8 grid (rows 0–7), but pawns can legitimately sit on row 8 (Player 0's start). `blockedEast` and `blockedWest` were indexing `state.vWalls[r]` without a bounds check, so accessing row 8 returned `undefined`, and the subsequent property access on `undefined` threw a TypeError that crashed the entire move-generation loop — making no legal moves appear and all pawn clicks do nothing. Similarly, the cross-check in `canPlaceWall` for horizontal walls was accessing `state.vWalls[r + 1][c]` when `r = 7`, which is out of bounds. The fix adds `if (r >= WALL_GRID) return false` guards in both east/west blocked helpers, and a `r + 1 < WALL_GRID` guard before the cross-check in `canPlaceWall`.
+
 ## Deferred / TODOs
 
 - AI opponent
