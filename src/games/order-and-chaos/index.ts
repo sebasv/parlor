@@ -414,7 +414,7 @@ function renderGame(
       aspect-ratio: 1;
       font-size: clamp(1rem, 4vw, 2rem);
       font-weight: 700;
-      border: 2px solid #2a2f38;
+      border: 2px solid #3a404d;
       border-radius: 8px;
       background: var(--bg-elev);
       cursor: pointer;
@@ -426,8 +426,15 @@ function renderGame(
       width: 100%;
     }
 
+    .oc-cell:disabled {
+      /* Override the global button:disabled opacity so placed X/O symbols stay
+         fully visible. Tappability is communicated by cursor, not by dimming. */
+      opacity: 1;
+      cursor: default;
+    }
+
     .oc-cell:disabled:not(.oc-cell-win) {
-      cursor: not-allowed;
+      cursor: default;
     }
 
     .oc-cell-x { color: #ff9f6b; }
@@ -438,8 +445,9 @@ function renderGame(
       background: color-mix(in srgb, var(--accent) 10%, var(--bg-elev));
     }
 
+    /* Preview: dashed border signals "not yet confirmed" without dimming the symbol */
     .oc-cell-preview {
-      opacity: 0.7;
+      border-style: dashed;
     }
 
     .oc-cell-win {
