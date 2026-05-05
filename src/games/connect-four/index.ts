@@ -213,6 +213,9 @@ const CSS = `
 }
 
 .cf-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
   padding: 0.3em 0.85em;
   border-radius: 999px;
   border: 2px solid transparent;
@@ -224,6 +227,13 @@ const CSS = `
 
 .cf-pill[data-player="1"] { color: var(--cf-p1); }
 .cf-pill[data-player="2"] { color: var(--cf-p2); }
+
+.cf-disc-swatch {
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
 .cf-pill.cf-pill-active {
   opacity: 1;
@@ -300,12 +310,17 @@ const game: GameModule = {
 
     const statusEl = el('div', { class: 'cf-status' })
 
-    // Player pills — one per player, highlighting the active one
+    // Player pills — one per player, highlighting the active one.
+    // Each pill includes a disc swatch so the colour↔player binding is explicit.
     const pillsEl = el('div', { class: 'cf-pills' })
     const pillEls: HTMLDivElement[] = []
+    const discColors = ['var(--cf-p1)', 'var(--cf-p2)']
     for (let i = 0; i < 2; i++) {
       const pill = el('div', { class: 'cf-pill', 'data-player': String(i + 1) })
-      pill.textContent = ctx.players[i]
+      const swatch = el('span', { class: 'cf-disc-swatch' })
+      swatch.style.background = discColors[i]
+      pill.appendChild(swatch)
+      pill.appendChild(document.createTextNode(ctx.players[i]))
       pillsEl.appendChild(pill)
       pillEls.push(pill)
     }

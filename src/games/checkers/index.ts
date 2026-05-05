@@ -124,7 +124,19 @@ const game: GameModule = {
         opacity: 0.45;
         transition: opacity 0.15s, border-color 0.15s, background 0.15s;
       }
-      .dr-score-name { font-size: 0.8rem; }
+      .dr-score-name {
+        display: flex;
+        align-items: center;
+        gap: 0.35em;
+        font-size: 0.8rem;
+      }
+      .dr-piece-swatch {
+        width: 0.75em;
+        height: 0.75em;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.25);
+      }
       .dr-score-val { font-size: 1.2rem; font-weight: 700; color: var(--fg); }
       /* player-light = ivory tones, player-dark = red */
       .dr-score-item[data-piece="light"] { color: #c8b89a; }
@@ -672,7 +684,12 @@ const game: GameModule = {
         if (!gameOver && state.turn === p) div.classList.add('dr-active-player')
         const nameSpan = document.createElement('span')
         nameSpan.className = 'dr-score-name'
-        nameSpan.textContent = escapeHtml(p === 0 ? p0Name : p1Name)
+        const pieceSwatch = document.createElement('span')
+        pieceSwatch.className = 'dr-piece-swatch'
+        // light pieces = ivory, dark pieces = red — match the actual piece colours
+        pieceSwatch.style.background = p === 0 ? '#c8b89a' : '#c44'
+        nameSpan.appendChild(pieceSwatch)
+        nameSpan.appendChild(document.createTextNode(escapeHtml(p === 0 ? p0Name : p1Name)))
         const valSpan = document.createElement('span')
         valSpan.className = 'dr-score-val'
         valSpan.textContent = `${capturedByPlayer[p]} captured`

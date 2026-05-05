@@ -23,10 +23,10 @@ const COLOR_ALIVE = '#4ade80' // 0 or 1 connections — green
 const COLOR_WARN = '#facc15' // 2 connections — yellow (one slot left)
 const COLOR_DEAD = '#ef4444' // 3 connections — red / dead
 
-// Stroke colour for committed curves.
-const CURVE_STROKE = '#6cb1ff'
-// Stroke colour for the in-progress drag curve.
-const DRAFT_STROKE = '#93c5fd'
+// Per-player curve colours (player 0 = blue, player 1 = orange).
+const PLAYER_CURVE_COLORS = ['#6cb1ff', '#ff9f5a'] as const
+// Stroke colour for the in-progress drag curve (matches active player, updated at drag-start).
+const DRAFT_STROKE_DEFAULT = '#93c5fd'
 // Stroke colour for the error flash.
 const ERROR_STROKE = '#ff6b6b'
 
@@ -133,6 +133,7 @@ interface Curve {
   fromDot: number // dot id
   toDot: number // dot id (same as fromDot for a self-loop)
   points: Point[] // polyline points, includes start and end positions
+  player: number // index of the player who drew this curve
 }
 
 interface GameState {
@@ -219,6 +220,48 @@ const CSS = `
   gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.sp-legend {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sp-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 0.75em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--bg-elev, #1a1d24);
+  font-size: 0.9rem;
+  opacity: 0.45;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.sp-legend-item.sp-legend-active {
+  opacity: 1;
+  border-color: var(--sp-legend-color);
+  background: color-mix(in srgb, var(--sp-legend-color) 15%, var(--bg-elev, #1a1d24));
+}
+
+@keyframes sp-legend-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--sp-legend-color); }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+.sp-legend-item.sp-legend-active {
+  animation: sp-legend-pulse 1.5s ease-in-out infinite;
+}
+
+.sp-legend-swatch {
+  width: 1.8em;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .sp-status {
@@ -323,6 +366,24 @@ const game: GameModule = {
     header.appendChild(statusEl)
     container.appendChild(header)
 
+    // Player colour legend — shows which curve colour belongs to which name
+    const legendEl = document.createElement('div')
+    legendEl.className = 'sp-legend'
+    const legendItems = ctx.players.map((name, i) => {
+      const item = document.createElement('div')
+      item.className = 'sp-legend-item'
+      const color = PLAYER_CURVE_COLORS[i] ?? PLAYER_CURVE_COLORS[0]
+      item.style.setProperty('--sp-legend-color', color)
+      const swatch = document.createElement('span')
+      swatch.className = 'sp-legend-swatch'
+      swatch.style.background = color
+      item.appendChild(swatch)
+      item.appendChild(document.createTextNode(name))
+      legendEl.appendChild(item)
+      return item
+    })
+    container.appendChild(legendEl)
+
     // SVG canvas
     const canvasWrap = document.createElement('div')
     canvasWrap.className = 'sp-canvas-wrap'
@@ -352,7 +413,7 @@ const game: GameModule = {
     // Draft polyline element (reused during drag)
     const draftPolyline = svgEl('polyline')
     draftPolyline.setAttribute('fill', 'none')
-    draftPolyline.setAttribute('stroke', DRAFT_STROKE)
+    draftPolyline.setAttribute('stroke', DRAFT_STROKE_DEFAULT)
     draftPolyline.setAttribute('stroke-width', '2.5')
     draftPolyline.setAttribute('stroke-linecap', 'round')
     draftPolyline.setAttribute('stroke-linejoin', 'round')
@@ -431,12 +492,15 @@ const game: GameModule = {
       curveLayer.innerHTML = ''
       dotLayer.innerHTML = ''
 
-      // Draw committed curves
+      // Draw committed curves — each player's curves render in their identity colour
       for (const curve of state.curves) {
         const poly = svgEl('polyline')
         poly.setAttribute('points', pointsAttr(curve.points))
         poly.setAttribute('fill', 'none')
-        poly.setAttribute('stroke', errorFlash ? ERROR_STROKE : CURVE_STROKE)
+        const curveColor = errorFlash
+          ? ERROR_STROKE
+          : (PLAYER_CURVE_COLORS[curve.player] ?? PLAYER_CURVE_COLORS[0])
+        poly.setAttribute('stroke', curveColor)
         poly.setAttribute('stroke-width', '2.5')
         poly.setAttribute('stroke-linecap', 'round')
         poly.setAttribute('stroke-linejoin', 'round')
@@ -493,6 +557,12 @@ const game: GameModule = {
         statusEl.className = `sp-status sp-turn-${p}`
         passBtn.disabled = false
       }
+
+      // Update legend active highlight
+      for (let i = 0; i < legendItems.length; i++) {
+        const active = state.phase === 'playing' && state.currentPlayer === i
+        legendItems[i].classList.toggle('sp-legend-active', active)
+      }
     }
 
     // ---- Commit a curve ----
@@ -513,7 +583,13 @@ const game: GameModule = {
         { x: toDot.x, y: toDot.y },
       ]
 
-      state.curves.push({ id: curveId, fromDot: fromDot.id, toDot: toDot.id, points: committed })
+      state.curves.push({
+        id: curveId,
+        fromDot: fromDot.id,
+        toDot: toDot.id,
+        points: committed,
+        player: state.currentPlayer,
+      })
 
       // Auto-place new dot at the polyline midpoint.
       const mid = polylineMidpoint(committed)
@@ -543,6 +619,11 @@ const game: GameModule = {
       dragActive = true
       dragFromDot = dot
       draftPoints = [{ x: dot.x, y: dot.y }]
+      // Tint the draft line in the active player's curve colour
+      draftPolyline.setAttribute(
+        'stroke',
+        PLAYER_CURVE_COLORS[state.currentPlayer] ?? DRAFT_STROKE_DEFAULT,
+      )
       draftPolyline.setAttribute('points', pointsAttr(draftPoints))
     }
 
