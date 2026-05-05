@@ -10,6 +10,7 @@ import {
   type PlayerIndex,
   STARTS,
   skipTurn,
+  stepsToHomeEntry,
   winner,
 } from './rules'
 
@@ -365,6 +366,7 @@ const CSS = `
   flex: 1 1 auto;
   min-width: 0;
   max-width: min(75vw, 700px);
+  position: relative;
 }
 
 .ludo-board-wrap svg {
@@ -532,6 +534,179 @@ const game: GameModule = {
       return ctx.players[p] ?? PLAYER_NAMES[p] ?? `Player ${p + 1}`
     }
 
+    // ---- Animation helpers ----
+
+    // Whether an animation is currently in progress (blocks input).
+    let animating = false
+
+    /**
+     * Compute the list of SVG [cx, cy] positions a pawn travels through
+     * during a move, one entry per step (not counting the start position).
+     * Used to drive the hop animation.
+     */
+    function moveWaypoints(pawn: Pawn, move: Move, dice: number): [number, number][] {
+      const waypoints: [number, number][] = []
+
+      if (move.kind === 'release') {
+        // Single hop: yard → start square
+        const startTrack = STARTS[pawn.player]
+        waypoints.push(cellCentre(...MAIN_TRACK[startTrack]))
+        return waypoints
+      }
+
+      const { pos } = pawn
+
+      if (pos.zone === 'home') {
+        // Hop along home column
+        const startIdx = pos.index
+        for (let step = 1; step <= dice; step++) {
+          const homeIdx = startIdx + step
+          if (homeIdx >= HOME_COL_COORDS[pawn.player].length) {
+            // Finished — render in centre cell
+            waypoints.push(cellCentre(7, 7))
+            break
+          }
+          const [col, row] = HOME_COL_COORDS[pawn.player][homeIdx]
+          waypoints.push(cellCentre(col, row))
+        }
+        return waypoints
+      }
+
+      if (pos.zone === 'track') {
+        const stepsLeft = stepsToHomeEntry(pawn.player, pos.index)
+        for (let step = 1; step <= dice; step++) {
+          if (step < stepsLeft) {
+            // Still on main track
+            const trackIdx = (pos.index + step) % 52
+            waypoints.push(cellCentre(...MAIN_TRACK[trackIdx]))
+          } else {
+            // Entering home column
+            const homeIdx = step - stepsLeft
+            if (homeIdx >= HOME_COL_COORDS[pawn.player].length) {
+              waypoints.push(cellCentre(7, 7))
+              break
+            }
+            const [col, row] = HOME_COL_COORDS[pawn.player][homeIdx]
+            waypoints.push(cellCentre(col, row))
+          }
+        }
+        return waypoints
+      }
+
+      return waypoints
+    }
+
+    /**
+     * Animate a pawn hopping through `waypoints` (~80ms per hop) in SVG-space,
+     * then call `onDone`.
+     *
+     * We create a temporary SVG circle element in pawnGroup, animate it via
+     * requestAnimationFrame + CSS transitions, then remove it when done.
+     */
+    function animatePawnHop(
+      startCx: number,
+      startCy: number,
+      waypoints: [number, number][],
+      color: string,
+      onDone: () => void,
+    ): void {
+      if (waypoints.length === 0) {
+        onDone()
+        return
+      }
+
+      const NS = 'http://www.w3.org/2000/svg'
+
+      // The SVG viewBox is fixed (SVG_W × SVG_H) but rendered at a smaller size.
+      // We animate cx/cy attributes directly using requestAnimationFrame.
+      const circle = document.createElementNS(NS, 'circle')
+      circle.setAttribute('cx', String(startCx))
+      circle.setAttribute('cy', String(startCy))
+      circle.setAttribute('r', String(CELL * 0.38))
+      circle.setAttribute('fill', color)
+      circle.setAttribute('stroke', '#fff')
+      circle.setAttribute('stroke-width', '2')
+      circle.setAttribute('pointer-events', 'none')
+      pawnGroup.appendChild(circle)
+
+      const HOP_MS = 80
+      let hopIndex = 0
+
+      function nextHop(): void {
+        if (hopIndex >= waypoints.length) {
+          circle.remove()
+          onDone()
+          return
+        }
+        const [tx, ty] = waypoints[hopIndex]
+        hopIndex++
+
+        // Animate by stepping cx/cy attributes via rAF over HOP_MS
+        const fromX = Number(circle.getAttribute('cx'))
+        const fromY = Number(circle.getAttribute('cy'))
+        const dx = tx - fromX
+        const dy = ty - fromY
+        const startTime = performance.now()
+
+        function tick(now: number): void {
+          const t = Math.min(1, (now - startTime) / HOP_MS)
+          circle.setAttribute('cx', String(fromX + dx * t))
+          circle.setAttribute('cy', String(fromY + dy * t))
+          if (t < 1) {
+            requestAnimationFrame(tick)
+          } else {
+            nextHop()
+          }
+        }
+        requestAnimationFrame(tick)
+      }
+
+      nextHop()
+    }
+
+    /**
+     * Animate a captured pawn flying back to its yard slot (250ms ease-out).
+     */
+    function animateCapturedPawn(
+      fromCx: number,
+      fromCy: number,
+      toCx: number,
+      toCy: number,
+      color: string,
+      onDone: () => void,
+    ): void {
+      const NS = 'http://www.w3.org/2000/svg'
+      const circle = document.createElementNS(NS, 'circle')
+      circle.setAttribute('cx', String(fromCx))
+      circle.setAttribute('cy', String(fromCy))
+      circle.setAttribute('r', String(CELL * 0.35))
+      circle.setAttribute('fill', color)
+      circle.setAttribute('stroke', '#333')
+      circle.setAttribute('stroke-width', '1.5')
+      circle.setAttribute('pointer-events', 'none')
+      pawnGroup.appendChild(circle)
+
+      const DURATION = 250
+      const startTime = performance.now()
+      const dx = toCx - fromCx
+      const dy = toCy - fromCy
+
+      function tick(now: number): void {
+        const t = Math.min(1, (now - startTime) / DURATION)
+        // ease-out: t => 1 - (1 - t)^2
+        const eased = 1 - (1 - t) * (1 - t)
+        circle.setAttribute('cx', String(fromCx + dx * eased))
+        circle.setAttribute('cy', String(fromCy + dy * eased))
+        if (t < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          circle.remove()
+          onDone()
+        }
+      }
+      requestAnimationFrame(tick)
+    }
+
     // ---- Render ----
 
     function renderPlayers(): void {
@@ -618,7 +793,7 @@ const game: GameModule = {
       renderStatus(w)
       renderDice()
       renderPawns(w)
-      rollBtn.disabled = state.dice !== null || w !== null
+      rollBtn.disabled = state.dice !== null || w !== null || animating
     }
 
     // ---- Interaction ----
@@ -656,12 +831,68 @@ const game: GameModule = {
 
     function handlePawnClick(player: PlayerIndex, slot: number): void {
       if (state.dice === null || player !== state.turn || winner(state) !== null) return
+      if (animating) return
 
       const move: Move | undefined = legalMoves(state).find((m) => m.pawnSlot === slot)
       if (!move) return
 
-      state = applyMove(state, move)
-      render()
+      // Find the pawn being moved
+      const movingPawn = state.pawns.find((p) => p.player === player && p.slot === slot)
+      if (!movingPawn) return
+
+      const dice = state.dice
+      const waypoints = moveWaypoints(movingPawn, move, dice)
+      const [startCx, startCy] = pawnCoords(movingPawn)
+      const color = PLAYER_COLORS[player]
+
+      // Detect capture: find any lone opponent that would be captured (only on track advances)
+      let capturedPawn: Pawn | null = null
+      let capturedYardCoord: [number, number] | null = null
+      if (move.kind === 'advance' && movingPawn.pos.zone === 'track' && waypoints.length > 0) {
+        // The final waypoint is where the pawn lands. Find any lone opponent there.
+        const finalWaypoint = waypoints[waypoints.length - 1]
+        for (const opponent of state.pawns) {
+          if (opponent.player === player) continue
+          if (opponent.pos.zone !== 'track') continue
+          const [opCx, opCy] = pawnCoords(opponent)
+          if (Math.abs(opCx - finalWaypoint[0]) < 1 && Math.abs(opCy - finalWaypoint[1]) < 1) {
+            capturedPawn = opponent
+            const yardSlot = YARD_COORDS[opponent.player][opponent.slot]
+            capturedYardCoord = cellCentre(yardSlot[0], yardSlot[1])
+            break
+          }
+        }
+      }
+
+      animating = true
+      rollBtn.disabled = true
+
+      animatePawnHop(startCx, startCy, waypoints, color, () => {
+        if (capturedPawn && capturedYardCoord) {
+          const finalWaypoint = waypoints[waypoints.length - 1]
+          const capturedColor = PLAYER_COLORS[capturedPawn.player]
+          // Apply the move first so the board state is correct, then animate capture
+          state = applyMove(state, move)
+          // Render without the animation marker (pawnGroup will be redrawn)
+          // But we still need to show the capture animation on top
+          render()
+          animateCapturedPawn(
+            finalWaypoint[0],
+            finalWaypoint[1],
+            capturedYardCoord[0],
+            capturedYardCoord[1],
+            capturedColor,
+            () => {
+              animating = false
+              render()
+            },
+          )
+        } else {
+          state = applyMove(state, move)
+          animating = false
+          render()
+        }
+      })
     }
 
     function startNewGame(): void {
