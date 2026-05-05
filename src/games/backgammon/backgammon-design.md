@@ -104,6 +104,24 @@ After each move, `legalMoves(state)` is called. If empty and dice remain:
 - The player taps it to end their turn.
 - This correctly handles the "no entry possible from bar" scenario.
 
+## Bug fix: empty destination points were not tappable
+
+**Root cause (fixed):** In `renderBoard()`, hit zones for point clicks were only
+created inside the checker-drawing loop (`for p = 1..24 { if (!slot) continue ...
+addHitZone() }`). Any legal destination point that had no checkers on it was skipped
+by the `!slot` guard, so no `<rect>` click target was ever appended for it.
+Consequently, tapping an empty point after selecting a checker did nothing — the
+tap fell through to the SVG background and the move was never executed.
+
+**Fix:** After the checker loop, a second pass iterates `destPoints` and adds a hit
+zone for every empty destination point (points already covered by the checker loop
+are skipped via `if (state.points[p] !== null) continue`). All other interaction
+paths (bar re-entry, bear-off, occupied destinations) were unaffected.
+
+**Verification:** Roll dice, select any checker, confirm legal destinations highlight
+blue. Tap an empty highlighted point — checker moves and the die is consumed. Bar
+re-entry and bear-off continue to work as before.
+
 ## What is deferred (TODO)
 
 - **Doubling cube**: not implemented. Would add a second strategic layer.

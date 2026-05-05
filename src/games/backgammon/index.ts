@@ -613,6 +613,28 @@ const game: GameModule = {
         }
       }
 
+      // Hit zones for empty destination points (no checker on them, skipped by the loop above)
+      if (!gameOver && state.rolled) {
+        for (const p of destPoints) {
+          if (state.points[p] !== null) continue // already handled in the checker loop above
+          const cx = pointX(p)
+          const isTop = isTopPoint(p)
+          const zoneH = POINT_H * 0.7
+          const zoneY = isTop ? TOP_Y : BOT_Y - zoneH
+          const zone = svgEl('rect', {
+            x: cx - POINT_W / 2,
+            y: zoneY,
+            width: POINT_W,
+            height: zoneH,
+            fill: 'transparent',
+            'data-point': p,
+            cursor: 'pointer',
+          })
+          zone.addEventListener('click', () => handlePointClick(p))
+          hitZoneGroup.appendChild(zone)
+        }
+      }
+
       // Bar checkers
       for (const player of [0, 1] as const) {
         const count = state.barCounts[player]
