@@ -1,89 +1,108 @@
-# Ludo — Design Choices & Simplifications
+# Ludo -- Design Choices & Simplifications
 
 ## Board Model
 
-The board geometry varies by player count. All geometry data lives in a
-`BoardGeometry` struct built in `index.ts` and consumed by both the SVG renderer
-and the animation helpers.
+The board is an N-pointed star, one point per player. All geometry data lives
+in `makeStarGeometry()` in `index.ts` and is consumed by the SVG renderer and
+animation helpers.
 
 ### Position model
 
 Pawn position is one of:
 
 ```
-{ zone: 'yard' }                       — not yet on the board
-{ zone: 'track', index: 0..trackLen-1 }— on the shared main track
-{ zone: 'home', index: 0–5 }           — player's home column (5 = finished)
-{ zone: 'finished' }                   — in the home target (all 4 = win)
+{ zone: 'yard' }                        -- not yet on the board
+{ zone: 'track', index: 0..trackLen-1 } -- on the shared main track
+{ zone: 'home', index: 0-5 }            -- player's home column (5 = finished)
+{ zone: 'finished' }                    -- in the home target (all 4 = win)
 ```
 
-`trackLen` is 52 for 2- and 4-player games, and 39 for the 3-player triangular
-board. All rules logic is parametric over `trackLen` via `GameState.trackLength`.
+### Track length
+
+Every variant uses L = 13 squares per arm (classic Ludo):
+
+| Player count | Track length | Entries |
+|---|---|---|
+| 2 | 26 (2 x 13) | 0, 13 |
+| 3 | 39 (3 x 13) | 0, 13, 26 |
+| 4 | 52 (4 x 13) | 0, 13, 26, 39 |
+
+Player i's entry is at track index `i * 13`.
+Player i's home turn-off is at `(i * 13 - 1 + trackLength) % trackLength`,
+which is the last square of the previous arm.
+
+### Star geometry
+
+For N players:
+
+- N outer tips at radius R_OUTER = 200 px, angles `theta_i = -90 + i * (360/N)` degrees
+  (tip 0 always points upward).
+- N inner valleys at radius R_INNER = 100 px, angles `theta_i + (180/N)` degrees
+  (halfway between adjacent tips).
+- Star centre at SVG coordinates (300, 260).
+
+Each arm of the star is traversed by the shared track in two half-legs:
+
+- Half-leg A (7 squares): approaches the outer tip from the left inner valley.
+  Square 0 of half-leg A is player i's **entry** (track index `i * 13`).
+- Half-leg B (6 squares): leaves the outer tip toward the right inner valley.
+  Last square of half-leg B is player i's **home turn-off** (track index
+  `(i+1)*13 - 1`).
+
+Home column: 6 squares from the outer tip inward to the star centre,
+placed at lerp fractions 1/7 to 6/7 along the tip-to-centre line.
+
+Yard: 4 pawn positions in a 2x2 grid around a point 22% of the way from
+tip to centre, offset perpendicular to the arm direction.
 
 ### Quadrant slot mapping
 
-Each player is assigned a **visual slot** (0–3 for 4-quad boards, 0–2 for
-3-leg boards) via `GameState.quadrantSlots`. The slot determines which start
-square, home column, yard, and colour a player uses.
-
-| Player count | `quadrantSlots` | Track entries | Spacing |
-|---|---|---|---|
-| 2 | `[0, 2]` | 0, 26 | 26 apart — symmetric |
-| 3 | `[0, 1, 2]` | 0, 13, 26 | 13 apart — symmetric (39-sq track) |
-| 4 | `[0, 1, 2, 3]` | 0, 13, 26, 39 | 13 apart — symmetric |
-
-## Board Variants
-
-### 4-quadrant board (2 and 4 players)
-
-Standard 15×15 grid, 480×480px, rendered inside a 600×500 SVG canvas (offset
-60px left, 10px top). One 32×32px cell per grid square. 52-square outer track.
-
-- **2 players** use slots 0 and 2 (opposite corners: Red bottom-left, Green
-  top-right). Slot 1 (Yellow) and slot 3 (Blue) yard areas are rendered at
-  reduced opacity as decorative empty zones.
-- **4 players** use all four slots as before.
-
-### 3-leg triangular board (3 players)
-
-A triangular board rendered using raw SVG pixel coordinates in the same
-600×500 canvas. Three equal legs of 13 squares each form a 39-square outer
-track. Entry points are 13 squares apart — perfectly symmetric.
-
-Triangle vertices (circumradius ≈ 185px, centred at 300×260):
-- V0 (slot 0, Red):    bottom centre — track index 0
-- V1 (slot 1, Yellow): top left      — track index 13
-- V2 (slot 2, Green):  top right     — track index 26
-
-Each leg is divided into 14 equal segments; the 13 intermediate points form
-the track squares. Home columns extend from each entry point toward the shared
-triangular centroid. Yard areas are circular regions near each vertex.
+For the N-pointed star the slot mapping is trivial -- player i uses star
+point i. `quadrantSlots` is always `[0, 1, ..., N-1]`.
 
 ## Player Entry Points
 
-### 2-player (52-square track, slots 0 and 2)
+### 2-player (26-square track)
 
-| Logical player | Slot | Main-track entry | Home entry |
+| Logical player | Slot | Main-track entry | Home turn-off |
 |---|---|---|---|
-| 0 | 0 (Red) | 0 | 51 |
-| 1 | 2 (Green) | 26 | 25 |
-
-### 3-player (39-square track, slots 0–2)
-
-| Logical player | Slot | Main-track entry | Home entry |
-|---|---|---|---|
-| 0 | 0 (Red) | 0 | 38 |
+| 0 | 0 (Red)    | 0  | 25 |
 | 1 | 1 (Yellow) | 13 | 12 |
-| 2 | 2 (Green) | 26 | 25 |
 
-### 4-player (52-square track, slots 0–3)
+### 3-player (39-square track)
 
-| Logical player | Slot | Main-track entry | Home entry |
+| Logical player | Slot | Main-track entry | Home turn-off |
 |---|---|---|---|
-| 0 | 0 (Red) | 0 | 51 |
+| 0 | 0 (Red)    | 0  | 38 |
 | 1 | 1 (Yellow) | 13 | 12 |
-| 2 | 2 (Green) | 26 | 25 |
-| 3 | 3 (Blue) | 39 | 38 |
+| 2 | 2 (Green)  | 26 | 25 |
+
+### 4-player (52-square track)
+
+| Logical player | Slot | Main-track entry | Home turn-off |
+|---|---|---|---|
+| 0 | 0 (Red)    | 0  | 51 |
+| 1 | 1 (Yellow) | 13 | 12 |
+| 2 | 2 (Green)  | 26 | 25 |
+| 3 | 3 (Blue)   | 39 | 38 |
+
+## N = 2 decision
+
+A 2-pointed star (N=2) has tips pointing up and down, connected by two inner
+valleys to the left and right. Visually it looks like a tall pointed oval or
+lens shape -- two opposing teardrops. This is a degenerate but valid star.
+
+We chose to **use the same N-pointed-star generator for N=2** rather than
+falling back to the classic 4-quadrant cross. Reasons:
+
+- Code consistency: one geometry path for all player counts.
+- The geometry is actually playable: a 26-square track with two players on a
+  vertical star is not confusing for kids.
+- Keeping the previous 4-quadrant board for N=2 would require maintaining two
+  separate code paths that diverge from the PR #43 direction.
+
+The N=2 board looks like a vertical diamond/star with the Red player's tip at
+top and the Yellow player's tip at bottom.
 
 ## Rules Implemented
 
@@ -117,7 +136,6 @@ triangular centroid. Yard areas are circular regions near each vertex.
 - Pure SVG board rendered once per game; pawn positions re-rendered on every
   state change.
 - State lives in a single `GameState` object (from `rules.ts`).
-- Roll button → sets `state.dice`; clicking a selectable pawn calls `applyMove`.
-- `BoardGeometry` is built once and cached; the 3-leg geometry uses
-  programmatic coordinate computation (no hard-coded pixel tables).
+- Roll button sets `state.dice`; clicking a selectable pawn calls `applyMove`.
+- `BoardGeometry` is built once via `makeStarGeometry(playerCount)` and cached.
 - No framework dependencies; vanilla DOM + SVG.

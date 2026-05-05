@@ -3,28 +3,23 @@
  *
  * Board representation
  * --------------------
- * The main track length and player entry points depend on the player count:
+ * The board is an N-pointed star, one point per player. Every variant uses
+ * L = 13 squares per arm:
  *
- *   2 players: 52-square track, visual quadrant slots [0, 2] (opposite corners)
- *              entries at 0 and 26 → 26 squares apart (symmetric)
+ *   2 players: 26-square track, entries at 0 and 13
+ *   3 players: 39-square track, entries at 0, 13, 26
+ *   4 players: 52-square track, entries at 0, 13, 26, 39
  *
- *   3 players: 39-square track, visual quadrant slots [0, 1, 2]
- *              entries at 0, 13, 26 → 13 squares apart (symmetric)
- *
- *   4 players: 52-square track, visual quadrant slots [0, 1, 2, 3]
- *              entries at 0, 13, 26, 39 → 13 squares apart (symmetric)
- *
- * The `QUAD_SLOTS` array maps logical player index (0..playerCount-1) to a
- * visual quadrant slot (0..3 for 4-quadrant boards, 0..2 for 3-leg boards).
- * The visual slot determines which home column, yard, and start square a
- * player actually uses.
+ * For N players, player i's entry is at track index i * 13.
+ * Player i's home turn-off is at (i * 13 - 1 + trackLength) % trackLength,
+ * i.e. the square just before the next player's entry.
  *
  * A pawn's position is one of:
- *   { zone: 'yard' }                       — not yet on the board
- *   { zone: 'track', index: 0..trackLen-1 }— on the shared main track
- *   { zone: 'home', index: 0..5 }          — on the player's 6-square home column
- *                                             (index 5 = finished square)
- *   { zone: 'finished' }                   — in the home target (all 4 = win)
+ *   { zone: 'yard' }                        -- not yet on the board
+ *   { zone: 'track', index: 0..(trackLen-1) }-- on the shared main track
+ *   { zone: 'home', index: 0..5 }           -- on the player's 6-square home column
+ *                                              (index 5 = finished square)
+ *   { zone: 'finished' }                    -- in the home target (all 4 = win)
  *
  * Entering the board
  * ------------------
@@ -34,9 +29,9 @@
  * Moving on the track
  * -------------------
  * A pawn at track index t moves to (t + dice) % trackLen.
- * The home column entry point for player p is one step before completing the loop:
- *   HOME_ENTRY[p] = (STARTS[p] + trackLen - 1) % trackLen
- * When the pawn reaches or passes HOME_ENTRY[p], it enters the home column.
+ * The home column turn-off for player p is:
+ *   homeEntries[p] = (starts[p] + trackLen - 1) % trackLen
+ * When the pawn reaches or passes homeEntries[p], it enters the home column.
  * Overshoot (home index > 5) is illegal.
  *
  * Capture
@@ -66,7 +61,7 @@ export interface TrackPos {
 }
 export interface HomePos {
   zone: 'home'
-  index: number // 0–5, where 5 = finished square
+  index: number // 0-5, where 5 = finished square
 }
 export interface FinishedPos {
   zone: 'finished'
@@ -76,83 +71,74 @@ export type PawnPos = YardPos | TrackPos | HomePos | FinishedPos
 
 export interface Pawn {
   player: PlayerIndex
-  slot: number // 0–3 within the player's set
+  slot: number // 0-3 within the player's set
   pos: PawnPos
 }
 
 export interface GameState {
   pawns: readonly Pawn[]
   turn: PlayerIndex
-  /** Rolled die value for the current sub-turn (1–6). null = need to roll. */
+  /** Rolled die value for the current sub-turn (1-6). null = need to roll. */
   dice: number | null
   /** Number of consecutive 6s rolled this turn (resets to 0 when a non-6 is rolled). */
   consecutiveSixes: number
-  /** Number of active players (2–4). */
+  /** Number of active players (2-4). */
   playerCount: number
   /**
    * Total number of squares on the main outer track.
-   * 52 for 2- and 4-player games (standard board).
-   * 39 for 3-player games (triangular board with 3×13 squares).
+   * trackLength = playerCount * 13 (L = 13 squares per arm).
+   * 2 players: 26, 3 players: 39, 4 players: 52.
    */
   trackLength: number
   /**
-   * Maps logical player index (0..playerCount-1) to a visual quadrant slot
-   * (0..3 for 4-quad boards, 0..2 for 3-leg boards). The slot determines
-   * which start square, home column, and yard the player uses.
-   *
-   * 2 players: [0, 2]       — opposite corners, entries 26 apart
-   * 3 players: [0, 1, 2]    — all three legs, entries 13 apart on 39-sq track
-   * 4 players: [0, 1, 2, 3] — all four corners, entries 13 apart on 52-sq track
+   * Maps logical player index (0..playerCount-1) to a visual star-point slot.
+   * For N players this is always [0, 1, 2, ..., N-1] -- one point per player,
+   * evenly spaced around the star.
    */
   quadrantSlots: readonly number[]
   /**
    * Main-track index where each logical player's pawn enters the board.
-   * Derived from quadrantSlots and trackLength; stored for convenience.
+   * starts[i] = i * 13.
    * Length === playerCount.
    */
   starts: readonly number[]
   /**
    * The last main-track square before each logical player enters their home column.
-   * home_entries[p] = (starts[p] + trackLength - 1) % trackLength
+   * homeEntries[i] = (starts[i] + trackLength - 1) % trackLength
    */
   homeEntries: readonly number[]
 }
 
 export interface Move {
-  pawnSlot: number // which of current player's pawns (0–3) to move
+  pawnSlot: number // which of current player's pawns (0-3) to move
   kind: 'release' | 'advance' // 'release' = from yard to start square
 }
 
 // ---------- Constants ----------
 
-/**
- * Per-slot start positions on the 52-square (4-player) board.
- * Slot 0 → index 0, slot 1 → index 13, slot 2 → index 26, slot 3 → index 39.
- */
-const SLOT_STARTS_52: readonly number[] = [0, 13, 26, 39]
+/** Squares per star arm (classic Ludo value). */
+const L = 13
 
 /**
- * Per-slot start positions on the 39-square (3-player) board.
- * Slot 0 → index 0, slot 1 → index 13, slot 2 → index 26.
- */
-const SLOT_STARTS_39: readonly number[] = [0, 13, 26]
-
-/**
- * Legacy constants kept for backward-compatibility with the render layer.
+ * Legacy constants kept for backward-compatibility with any external consumers.
  * Render layer should prefer GameState.starts / GameState.homeEntries.
  */
-export const STARTS: readonly number[] = SLOT_STARTS_52
+export const STARTS: readonly number[] = [0, 13, 26, 39]
 export const HOME_ENTRIES: readonly number[] = [51, 12, 25, 38]
 
 // ---------- Geometry builders ----------
 
 function buildGeometry(
-  quadrantSlots: readonly number[],
+  playerCount: number,
   trackLength: number,
-  slotStarts: readonly number[],
 ): { starts: readonly number[]; homeEntries: readonly number[] } {
-  const starts = quadrantSlots.map((slot) => slotStarts[slot])
-  const homeEntries = starts.map((s) => (s + trackLength - 1) % trackLength)
+  const starts: number[] = []
+  const homeEntries: number[] = []
+  for (let i = 0; i < playerCount; i++) {
+    const s = i * L
+    starts.push(s)
+    homeEntries.push((s + trackLength - 1) % trackLength)
+  }
   return { starts, homeEntries }
 }
 
@@ -222,7 +208,7 @@ export function legalMoves(state: GameState): Move[] {
 
     if (pos.zone === 'home') {
       const newHomeIdx = pos.index + dice
-      // Must land exactly on index 5 to finish, or land on 0–4
+      // Must land exactly on index 5 to finish, or land on 0-4
       if (newHomeIdx <= 5) {
         moves.push({ pawnSlot: pawn.slot, kind: 'advance' })
       }
@@ -244,7 +230,7 @@ export function legalMoves(state: GameState): Move[] {
       if (homeIdx <= 5) {
         moves.push({ pawnSlot: pawn.slot, kind: 'advance' })
       }
-      // else overshoots — illegal, no move for this pawn
+      // else overshoots -- illegal, no move for this pawn
     }
   }
 
@@ -338,7 +324,7 @@ function nextActivePlayer(playerCount: number, current: PlayerIndex): PlayerInde
 // ---------- Winner ----------
 
 /**
- * Returns the index of the winning player (0–3) if all 4 of their pawns are
+ * Returns the index of the winning player (0-3) if all 4 of their pawns are
  * finished, otherwise null.
  */
 export function winner(state: GameState): PlayerIndex | null {
@@ -354,28 +340,10 @@ export function winner(state: GameState): PlayerIndex | null {
 // ---------- Initial state ----------
 
 export function initialState(playerCount: 2 | 3 | 4): GameState {
-  let quadrantSlots: readonly number[]
-  let trackLength: number
-  let slotStarts: readonly number[]
-
-  if (playerCount === 2) {
-    // Opposite corners on the standard 52-square board: entries 26 apart.
-    quadrantSlots = [0, 2]
-    trackLength = 52
-    slotStarts = SLOT_STARTS_52
-  } else if (playerCount === 3) {
-    // Three equally spaced legs on the 39-square triangular board: entries 13 apart.
-    quadrantSlots = [0, 1, 2]
-    trackLength = 39
-    slotStarts = SLOT_STARTS_39
-  } else {
-    // Standard 4-player board: all four corners, entries 13 apart.
-    quadrantSlots = [0, 1, 2, 3]
-    trackLength = 52
-    slotStarts = SLOT_STARTS_52
-  }
-
-  const { starts, homeEntries } = buildGeometry(quadrantSlots, trackLength, slotStarts)
+  const trackLength = playerCount * L
+  // Each player occupies their own star point: slot i = player i.
+  const quadrantSlots: number[] = Array.from({ length: playerCount }, (_, i) => i)
+  const { starts, homeEntries } = buildGeometry(playerCount, trackLength)
 
   const pawns: Pawn[] = []
   for (let player = 0; player < playerCount; player++) {
