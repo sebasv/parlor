@@ -94,11 +94,24 @@ const game: GameModule = {
         align-items: center;
         gap: 0.4em;
         font-size: 0.95rem;
-        opacity: 0.65;
-        transition: opacity 0.15s;
+        padding: 0.3em 0.75em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: transparent;
+        opacity: 0.4;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
       }
       .qr-player-chip.active {
         opacity: 1;
+        border-color: var(--qr-chip-color);
+        background: color-mix(in srgb, var(--qr-chip-color) 12%, transparent);
+      }
+      @keyframes qr-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 var(--qr-chip-color); }
+        50%       { box-shadow: 0 0 0 4px transparent; }
+      }
+      .qr-player-chip.active {
+        animation: qr-pulse 1.5s ease-in-out infinite;
       }
       .qr-player-dot {
         width: 11px;
@@ -204,6 +217,7 @@ const game: GameModule = {
     const playerChips = ctx.players.map((name, i) => {
       const chip = document.createElement('div')
       chip.className = 'qr-player-chip'
+      chip.style.setProperty('--qr-chip-color', P_COLOR[i])
       const dot = document.createElement('div')
       dot.className = 'qr-player-dot'
       dot.style.background = P_COLOR[i]

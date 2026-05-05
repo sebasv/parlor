@@ -168,17 +168,42 @@ const CSS = `
 
 .tsuro-legend {
   display: flex;
-  gap: 1rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
   justify-content: center;
   font-size: 0.85rem;
-  color: var(--fg-dim);
 }
 
 .tsuro-legend-item {
   display: flex;
   align-items: center;
   gap: 0.4em;
+  padding: 0.3em 0.75em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--bg-elev, #1a1d24);
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.tsuro-legend-item.tsuro-legend-active {
+  opacity: 1;
+  border-color: var(--tsuro-item-color);
+  background: color-mix(in srgb, var(--tsuro-item-color) 12%, var(--bg-elev, #1a1d24));
+}
+
+.tsuro-legend-item.tsuro-legend-eliminated {
+  opacity: 0.25;
+  text-decoration: line-through;
+}
+
+@keyframes tsuro-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--tsuro-item-color); }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+.tsuro-legend-item.tsuro-legend-active {
+  animation: tsuro-pulse 1.5s ease-in-out infinite;
 }
 
 .tsuro-legend-dot {
@@ -267,14 +292,17 @@ const game: GameModule = {
     const eliminatedEl = document.createElement('div')
     eliminatedEl.className = 'tsuro-eliminated-list'
 
-    // Legend (player colours)
+    // Legend (player colours) — doubles as active-player pills
     const legendEl = document.createElement('div')
     legendEl.className = 'tsuro-legend'
+    const legendItemEls: HTMLSpanElement[] = []
     for (let i = 0; i < ctx.players.length; i++) {
       const item = document.createElement('span')
       item.className = 'tsuro-legend-item'
+      item.style.setProperty('--tsuro-item-color', PLAYER_COLORS[i])
       item.innerHTML = `<span class="tsuro-legend-dot" style="background:${PLAYER_COLORS[i]}"></span><span>${escHtml(ctx.players[i])}</span>`
       legendEl.appendChild(item)
+      legendItemEls.push(item)
     }
 
     // SVG board
@@ -376,6 +404,17 @@ const game: GameModule = {
         .filter((p) => p.status === 'eliminated')
         .map((p) => escHtml(ctx.players[p.playerIndex]))
       eliminatedEl.textContent = eliminated.length > 0 ? `Eliminated: ${eliminated.join(', ')}` : ''
+
+      // Update legend pill states
+      const eliminatedSet = new Set(
+        state.pawns.filter((p) => p.status === 'eliminated').map((p) => p.playerIndex),
+      )
+      for (let i = 0; i < legendItemEls.length; i++) {
+        const isActive =
+          state.phase !== 'done' && state.currentPlayerIndex === i && !eliminatedSet.has(i)
+        legendItemEls[i].classList.toggle('tsuro-legend-active', isActive)
+        legendItemEls[i].classList.toggle('tsuro-legend-eliminated', eliminatedSet.has(i))
+      }
     }
 
     function renderBoard(): void {

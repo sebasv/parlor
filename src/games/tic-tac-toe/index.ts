@@ -88,7 +88,20 @@ const game: GameModule = {
       cellEls.push(cell)
     }
 
+    // Player pills
+    const pillsEl = document.createElement('div')
+    pillsEl.className = 'ttt-pills'
+    const pillEls = [p0, p1].map((name, i) => {
+      const pill = document.createElement('div')
+      pill.className = 'ttt-pill'
+      pill.setAttribute('data-player', String(i))
+      pill.textContent = `${escapeHtml(name)} (${i === 0 ? 'X' : 'O'})`
+      pillsEl.appendChild(pill)
+      return pill
+    })
+
     container.appendChild(statusEl)
+    container.appendChild(pillsEl)
     container.appendChild(boardEl)
     container.appendChild(controlsEl)
 
@@ -184,6 +197,46 @@ const game: GameModule = {
         background: var(--bg-elev);
         color: var(--fg-dim);
       }
+
+      .ttt-pills {
+        display: flex;
+        gap: 0.6rem;
+      }
+
+      .ttt-pill {
+        padding: 0.3em 0.85em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: var(--bg-elev);
+        font-size: 0.9rem;
+        opacity: 0.4;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+      }
+
+      .ttt-pill[data-player="0"] { color: var(--accent); }
+      .ttt-pill[data-player="1"] { color: var(--danger, #ef4444); }
+
+      .ttt-pill.ttt-pill-active {
+        opacity: 1;
+        border-color: currentColor;
+      }
+
+      .ttt-pill[data-player="0"].ttt-pill-active {
+        background: color-mix(in srgb, var(--accent) 15%, var(--bg-elev));
+      }
+
+      .ttt-pill[data-player="1"].ttt-pill-active {
+        background: color-mix(in srgb, var(--danger, #ef4444) 15%, var(--bg-elev));
+      }
+
+      @keyframes ttt-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+        50%       { box-shadow: 0 0 0 4px transparent; }
+      }
+
+      .ttt-pill.ttt-pill-active {
+        animation: ttt-pulse 1.5s ease-in-out infinite;
+      }
     `
 
     // --- Render ---
@@ -217,6 +270,11 @@ const game: GameModule = {
             winningCells.add(c)
           }
         }
+      }
+
+      // Update player pills
+      for (let i = 0; i < pillEls.length; i++) {
+        pillEls[i].classList.toggle('ttt-pill-active', !gameOver && currentPlayer === i)
       }
 
       // Update cells

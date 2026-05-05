@@ -176,27 +176,6 @@ const CSS = `
 .hex-status[data-winner="0"] { color: var(--hex-p0); }
 .hex-status[data-winner="1"] { color: var(--hex-p1); }
 
-.hex-legend {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.85rem;
-  color: var(--fg-dim);
-}
-
-.hex-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-}
-
-.hex-legend-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 .hex-svg-wrap {
   --hex-p0: #ef4444;
   --hex-p1: #6cb1ff;
@@ -211,11 +190,55 @@ const CSS = `
   touch-action: manipulation;
 }
 
-/* Edge border strips */
-.hex-edge-top    { fill: var(--hex-p0); opacity: 0.75; }
-.hex-edge-bottom { fill: var(--hex-p0); opacity: 0.75; }
-.hex-edge-left   { fill: var(--hex-p1); opacity: 0.75; }
-.hex-edge-right  { fill: var(--hex-p1); opacity: 0.75; }
+/* Edge border strips — thick and saturated so they read from across the room */
+.hex-edge-top    { fill: var(--hex-p0); opacity: 1; }
+.hex-edge-bottom { fill: var(--hex-p0); opacity: 1; }
+.hex-edge-left   { fill: var(--hex-p1); opacity: 1; }
+.hex-edge-right  { fill: var(--hex-p1); opacity: 1; }
+
+/* Player legend pills with active-player highlighting */
+.hex-legend {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.hex-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--bg-elev, #1a1d24);
+  opacity: 0.45;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.hex-legend-item[data-active='true'] {
+  opacity: 1;
+  border-color: currentColor;
+}
+
+.hex-legend-item[data-player='0'] { color: var(--hex-p0); }
+.hex-legend-item[data-player='1'] { color: var(--hex-p1); }
+
+.hex-legend-item[data-active='true'][data-player='0'] {
+  background: color-mix(in srgb, var(--hex-p0) 15%, var(--bg-elev, #1a1d24));
+}
+
+.hex-legend-item[data-active='true'][data-player='1'] {
+  background: color-mix(in srgb, var(--hex-p1) 15%, var(--bg-elev, #1a1d24));
+}
+
+@keyframes hex-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+.hex-legend-item[data-active='true'] {
+  animation: hex-pulse 1.5s ease-in-out infinite;
+}
 
 /* Hex cells */
 .hex-cell {
@@ -299,19 +322,22 @@ const game: GameModule = {
     const statusEl = document.createElement('div')
     statusEl.className = 'hex-status'
 
-    // Legend showing which edges each player owns
+    // Player legend pills — highlight the active player
     const legendEl = document.createElement('div')
     legendEl.className = 'hex-legend'
-    legendEl.innerHTML = `
-      <span class="hex-legend-item">
-        <span class="hex-legend-swatch" style="background:var(--hex-p0)"></span>
-        <span>${escapeHtml(ctx.players[0])} — top &amp; bottom</span>
-      </span>
-      <span class="hex-legend-item">
-        <span class="hex-legend-swatch" style="background:var(--hex-p1)"></span>
-        <span>${escapeHtml(ctx.players[1])} — left &amp; right</span>
-      </span>
-    `
+
+    const legendItems: HTMLSpanElement[] = []
+    for (const [i, label] of [
+      [0, `${escapeHtml(ctx.players[0])} — top &amp; bottom`],
+      [1, `${escapeHtml(ctx.players[1])} — left &amp; right`],
+    ] as [number, string][]) {
+      const item = document.createElement('span')
+      item.className = 'hex-legend-item'
+      item.setAttribute('data-player', String(i))
+      item.innerHTML = label
+      legendEl.appendChild(item)
+      legendItems.push(item)
+    }
 
     // SVG wrapper (allows horizontal scroll on small screens)
     const svgWrap = document.createElement('div')
@@ -340,7 +366,8 @@ const game: GameModule = {
       positions: [number, number][],
       direction: 'top' | 'bottom' | 'left' | 'right',
     ): void {
-      const edgeR = R * 0.45
+      // Wider strip so it reads clearly from a distance
+      const edgeR = R * 0.65
       for (const [col, row] of positions) {
         const [cx, cy] = hexCenter(col, row)
         // Draw a narrow parallelogram cap on the relevant face of the hex.
@@ -480,6 +507,14 @@ const game: GameModule = {
       } else {
         const name = escapeHtml(ctx.players[currentPlayer])
         statusEl.textContent = `${name}'s turn`
+      }
+
+      // Update legend pills: active player is highlighted, inactive is dimmed
+      for (let i = 0; i < legendItems.length; i++) {
+        legendItems[i].setAttribute(
+          'data-active',
+          winner === null && currentPlayer === i ? 'true' : 'false',
+        )
       }
 
       // Cell colours

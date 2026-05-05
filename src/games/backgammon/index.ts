@@ -174,9 +174,32 @@ const game: GameModule = {
         align-items: center;
         gap: 0.2rem;
         min-width: 110px;
+        padding: 0.35em 0.85em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: var(--bg-elev, #1a1d24);
+        opacity: 0.45;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
       }
-      .bg-player-info.bg-active .bg-player-name {
-        color: var(--accent);
+      /* player 0 = ivory, player 1 = warm red */
+      .bg-player-info[data-player="0"] { color: #f0e8d0; }
+      .bg-player-info[data-player="1"] { color: #c44b4b; }
+      .bg-player-info.bg-active {
+        opacity: 1;
+        border-color: currentColor;
+      }
+      .bg-player-info[data-player="0"].bg-active {
+        background: color-mix(in srgb, #f0e8d0 15%, var(--bg-elev, #1a1d24));
+      }
+      .bg-player-info[data-player="1"].bg-active {
+        background: color-mix(in srgb, #c44b4b 15%, var(--bg-elev, #1a1d24));
+      }
+      @keyframes bg-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+        50%       { box-shadow: 0 0 0 4px transparent; }
+      }
+      .bg-player-info.bg-active {
+        animation: bg-pulse 1.5s ease-in-out infinite;
       }
       .bg-player-name { font-size: 0.85rem; font-weight: 600; }
       .bg-player-counts { font-size: 0.8rem; color: var(--fg-dim); }
@@ -274,6 +297,7 @@ const game: GameModule = {
 
     const p0Info = document.createElement('div')
     p0Info.className = 'bg-player-info'
+    p0Info.setAttribute('data-player', '0')
     const p0NameEl = document.createElement('div')
     p0NameEl.className = 'bg-player-name'
     p0NameEl.textContent = p0Name
@@ -284,6 +308,7 @@ const game: GameModule = {
 
     const p1Info = document.createElement('div')
     p1Info.className = 'bg-player-info'
+    p1Info.setAttribute('data-player', '1')
     const p1NameEl = document.createElement('div')
     p1NameEl.className = 'bg-player-name'
     p1NameEl.textContent = p1Name

@@ -220,13 +220,31 @@ const game: GameModule = {
       }
       .dab-scores {
         display: flex;
-        gap: 1.5rem;
+        gap: 0.6rem;
       }
       .dab-score {
         display: flex;
         align-items: center;
         gap: 0.4em;
         font-size: 1rem;
+        padding: 0.3em 0.75em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: var(--bg-elev, #1a1d24);
+        opacity: 0.4;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+      }
+      .dab-score.dab-score-active {
+        opacity: 1;
+        border-color: var(--dab-chip-color);
+        background: color-mix(in srgb, var(--dab-chip-color) 12%, var(--bg-elev, #1a1d24));
+      }
+      @keyframes dab-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 var(--dab-chip-color); }
+        50%       { box-shadow: 0 0 0 4px transparent; }
+      }
+      .dab-score.dab-score-active {
+        animation: dab-pulse 1.5s ease-in-out infinite;
       }
       .dab-score-dot {
         width: 12px;
@@ -310,6 +328,7 @@ const game: GameModule = {
     const scoreEls = ctx.players.map((name, i) => {
       const chip = document.createElement('div')
       chip.className = 'dab-score'
+      chip.style.setProperty('--dab-chip-color', PLAYER_COLORS[i])
       const dot = document.createElement('div')
       dot.className = 'dab-score-dot'
       dot.style.background = PLAYER_COLORS[i]
@@ -606,9 +625,13 @@ const game: GameModule = {
         }
       }
 
-      // Update score counts
-      scoreEls.forEach(({ count }, i) => {
+      // Update score counts and active-player highlighting
+      scoreEls.forEach(({ chip, count }, i) => {
         count.textContent = String(state.scores[i])
+        chip.classList.toggle(
+          'dab-score-active',
+          state.phase === 'playing' && state.currentPlayer === i,
+        )
       })
 
       // Update status

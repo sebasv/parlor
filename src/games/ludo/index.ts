@@ -401,10 +401,26 @@ const CSS = `
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--fg, #e6e6e6);
-  opacity: 0.5;
+  padding: 0.3em 0.75em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: transparent;
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
 }
-.ludo-player-row.active { opacity: 1; font-weight: 700; }
+.ludo-player-row.active {
+  opacity: 1;
+  font-weight: 700;
+  border-color: var(--ludo-row-color, var(--accent));
+  background: color-mix(in srgb, var(--ludo-row-color, var(--accent)) 12%, transparent);
+}
+@keyframes ludo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--ludo-row-color, var(--accent)); }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+.ludo-player-row.active {
+  animation: ludo-pulse 1.5s ease-in-out infinite;
+}
 
 .ludo-player-dot {
   width: 12px;
@@ -714,6 +730,7 @@ const game: GameModule = {
       for (let p = 0; p < state.playerCount; p++) {
         const row = document.createElement('div')
         row.className = `ludo-player-row${p === state.turn ? ' active' : ''}`
+        row.style.setProperty('--ludo-row-color', PLAYER_COLORS[p])
 
         const dot = document.createElement('div')
         dot.className = 'ludo-player-dot'
