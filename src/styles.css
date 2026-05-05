@@ -292,15 +292,6 @@ input[type="text"] {
   padding: 1rem;
 }
 
-.confirm-backdrop-dismiss {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: default;
-}
-
 .confirm-dialog {
   background: var(--bg-elev);
   border-radius: var(--radius);

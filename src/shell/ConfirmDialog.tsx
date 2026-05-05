@@ -14,12 +14,6 @@ export function ConfirmDialog(props: Props) {
   return (
     <Show when={props.open()}>
       <div class="confirm-backdrop">
-        <button
-          type="button"
-          class="confirm-backdrop-dismiss"
-          aria-label="Close"
-          onClick={props.onCancel}
-        />
         <div class="confirm-dialog" role="alertdialog" aria-modal="true" aria-label={props.title}>
           <h3>{props.title}</h3>
           <Show when={props.body}>

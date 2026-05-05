@@ -997,6 +997,7 @@ const game: GameModule = {
       clearSelection()
       gameOver = false
       allMoves = []
+      animating = false
       render()
     })
 
