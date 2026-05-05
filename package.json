@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
+    "preview": "pnpm run build && wrangler dev",
     "check": "biome check",
-    "check:fix": "biome check --write"
+    "check:fix": "biome check --write",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
@@ -22,6 +23,7 @@
     "vite": "^8.0.10",
     "vite-plugin-pwa": "^1.0.4",
     "vite-plugin-solid": "^2.11.12",
-    "workbox-window": "^7.4.1"
+    "workbox-window": "^7.4.1",
+    "wrangler": "^4.87.0"
   }
 }
