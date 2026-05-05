@@ -146,3 +146,110 @@ input[type="text"] {
 .game-root {
   min-height: 50vh;
 }
+
+.game-host-help {
+  margin-left: auto;
+  width: 2.4em;
+  height: 2.4em;
+  padding: 0;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.rules-screen {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+
+.rules-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rules-header h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.rules-back {
+  background: transparent;
+  padding: 0.4em 0.7em;
+}
+
+.rules-locale {
+  display: inline-flex;
+  background: var(--bg-elev);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  border: none;
+  margin: 0;
+}
+
+.rules-locale-legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rules-locale-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  border-radius: 999px;
+  padding: 0.4em 0.9em;
+  font-size: 0.9em;
+}
+
+.rules-locale-btn[data-active="true"] {
+  background: var(--accent);
+  color: #000;
+}
+
+.rules-body {
+  display: grid;
+  gap: 1.25rem;
+  line-height: 1.5;
+}
+
+.rules-section h3 {
+  margin: 0 0 0.4em;
+  color: var(--accent);
+}
+
+.rules-section p {
+  margin: 0 0 0.6em;
+}
+
+.rules-section ul {
+  margin: 0.2em 0 0;
+  padding-left: 1.2em;
+}
+
+.rules-section li {
+  margin-bottom: 0.3em;
+}
+
+.rules-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.rules-start {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  padding: 0.8em 1.6em;
+  font-size: 1.05em;
+}

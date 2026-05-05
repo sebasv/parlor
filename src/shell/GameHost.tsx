@@ -5,6 +5,7 @@ interface Props {
   entry: GameEntry
   players: readonly string[]
   onExit: () => void
+  onShowRules?: () => void
 }
 
 export function GameHost(props: Props) {
@@ -36,6 +37,16 @@ export function GameHost(props: Props) {
           ← Back
         </button>
         <h2>{props.entry.title}</h2>
+        <Show when={props.onShowRules && props.entry.rules}>
+          <button
+            type="button"
+            class="game-host-help"
+            aria-label="How to play"
+            onClick={props.onShowRules}
+          >
+            ?
+          </button>
+        </Show>
       </header>
       <Show when={mod.loading}>
         <p>Loading…</p>
