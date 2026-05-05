@@ -62,6 +62,20 @@ game's `<game-id>-design.md`. Read it before changing rules behaviour, and
 keep the rules text in `meta.ts` aligned with what is actually playable —
 not with the canonical board-game spec.
 
+## Game-meta fields
+
+`GameMeta` (in `src/lib/game.ts`) supports several optional fields a game can
+populate:
+
+- `preferredOrientation: 'portrait' | 'landscape'` — the shell shows a rotate
+  overlay until the device matches, and tries `screen.orientation.lock()`.
+- `rules: Record<Locale, RulesContent>` — bilingual how-to-play content shown
+  in an overlay before the game starts and re-openable via `?` mid-game.
+
+Each game folder may also contain `thumbnail.svg` — an inline SVG (eagerly
+imported as a raw string) shown on the game card in the picker. Aim for ~16:10
+aspect, mid-game scene, calm flat colours.
+
 ## UI localisation gap
 
 Rules content is bilingual (EN + NL) but in-game UI strings are currently
