@@ -1,0 +1,49 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tsuro thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+  <!-- 6x6 board grid -->
+  <g stroke="#2a2f38" stroke-width="0.75" fill="none">
+    <!-- Vertical lines -->
+    <line x1="20" y1="5" x2="20" y2="120"/>
+    <line x1="36" y1="5" x2="36" y2="120"/>
+    <line x1="52" y1="5" x2="52" y2="120"/>
+    <line x1="68" y1="5" x2="68" y2="120"/>
+    <line x1="84" y1="5" x2="84" y2="120"/>
+    <line x1="100" y1="5" x2="100" y2="120"/>
+    <line x1="116" y1="5" x2="116" y2="120"/>
+    <!-- Horizontal lines -->
+    <line x1="20" y1="5" x2="116" y2="5"/>
+    <line x1="20" y1="24" x2="116" y2="24"/>
+    <line x1="20" y1="43" x2="116" y2="43"/>
+    <line x1="20" y1="62" x2="116" y2="62"/>
+    <line x1="20" y1="81" x2="116" y2="81"/>
+    <line x1="20" y1="100" x2="116" y2="100"/>
+    <line x1="20" y1="119" x2="116" y2="119"/>
+  </g>
+  <!-- Tile 1 (col 0, row 0): curved path from top-left to right-mid -->
+  <path d="M 24 5 Q 24 14 36 14" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <path d="M 20 19 Q 30 19 30 5" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <!-- Tile 2 (col 1, row 0): S-curve paths -->
+  <path d="M 40 5 Q 40 14 52 14" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <path d="M 44 5 Q 50 24 52 18" stroke="#3a4050" stroke-width="1.5" fill="none"/>
+  <!-- Tile 3 (col 0, row 1): paths -->
+  <path d="M 28 24 Q 28 33 20 33" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <path d="M 20 14 Q 36 14 36 24" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <!-- Tile 4 (col 1, row 1): diagonal-ish curves -->
+  <path d="M 52 33 Q 58 43 68 43" stroke="#e8a14d" stroke-width="2" fill="none"/>
+  <path d="M 52 24 Q 62 24 68 33" stroke="#e8a14d" stroke-width="2" fill="none"/>
+  <!-- Tile 5 (col 2, row 1) -->
+  <path d="M 84 33 Q 84 43 84 43" stroke="#3a4050" stroke-width="1.5" fill="none"/>
+  <path d="M 68 38 Q 76 38 84 38" stroke="#3a4050" stroke-width="1.5" fill="none"/>
+  <!-- Pawn on path - coloured circle -->
+  <circle cx="46" cy="33" r="5" fill="#c44" stroke="#1a1d24" stroke-width="1.5"/>
+  <!-- Game title area -->
+  <text x="155" y="20" text-anchor="middle" fill="#9aa0a6" font-family="system-ui" font-size="9">TSURO</text>
+  <!-- Decorative tile shapes on the right -->
+  <rect x="130" y="30" width="50" height="50" rx="3" fill="#2a2f38" stroke="#3a4050" stroke-width="1"/>
+  <path d="M 130 45 Q 155 45 155 55 Q 155 65 180 65" stroke="#6cb1ff" stroke-width="2" fill="none"/>
+  <path d="M 143 30 Q 143 55 155 55 Q 167 55 167 80" stroke="#e8a14d" stroke-width="2" fill="none"/>
+  <!-- Spare tile in hand -->
+  <rect x="130" y="88" width="50" height="30" rx="3" fill="#2a2f38" stroke="#3a4050" stroke-width="1"/>
+  <path d="M 130 103 Q 145 95 155 103 Q 165 111 180 103" stroke="#9aa0a6" stroke-width="1.5" fill="none"/>
+  <text x="155" y="122" text-anchor="middle" fill="#9aa0a6" font-family="system-ui" font-size="7">next tile</text>
+</svg>
