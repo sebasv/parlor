@@ -1,0 +1,76 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dots and Boxes thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+  <!-- 5x5 dot grid: spacing 35, offset x=22.5, y=10 -->
+  <!-- Dots at (22+col*35, 10+row*35) for col,row in 0..4 -->
+  <!-- Filled boxes first (behind lines) -->
+  <!-- Box at col1,row0 (between dots (1,0)(2,0)(1,1)(2,1)) = x=57,y=10 w=35 h=35 -->
+  <rect x="58" y="11" width="34" height="34" fill="#6cb1ff" opacity="0.25"/>
+  <!-- Box at col2,row1 -->
+  <rect x="93" y="46" width="34" height="34" fill="#e8a14d" opacity="0.3"/>
+  <!-- Box at col0,row2 -->
+  <rect x="23" y="81" width="34" height="34" fill="#6cb1ff" opacity="0.25"/>
+  <!-- Horizontal lines drawn (accent player 1) -->
+  <g stroke="#6cb1ff" stroke-width="2.5" stroke-linecap="round">
+    <!-- row0: col1-2 top -->
+    <line x1="57" y1="10" x2="92" y2="10"/>
+    <!-- row1: col1-2 (bottom of box1) -->
+    <line x1="57" y1="45" x2="92" y2="45"/>
+    <!-- row1: col2-3 top -->
+    <line x1="92" y1="45" x2="127" y2="45"/>
+    <!-- row2: col2-3 bottom -->
+    <line x1="92" y1="80" x2="127" y2="80"/>
+    <!-- row2: col0-1 top -->
+    <line x1="22" y1="80" x2="57" y2="80"/>
+    <!-- row3: col0-1 bottom -->
+    <line x1="22" y1="115" x2="57" y2="115"/>
+    <!-- partial line row0 col3-4 -->
+    <line x1="127" y1="10" x2="162" y2="10"/>
+  </g>
+  <!-- Vertical lines (player 2) -->
+  <g stroke="#e8a14d" stroke-width="2.5" stroke-linecap="round">
+    <!-- col1 row0-1 left of box1 -->
+    <line x1="57" y1="10" x2="57" y2="45"/>
+    <!-- col2 row0-1 right of box1 -->
+    <line x1="92" y1="10" x2="92" y2="45"/>
+    <!-- col2 row1-2 left of box2 -->
+    <line x1="92" y1="45" x2="92" y2="80"/>
+    <!-- col3 row1-2 right of box2 -->
+    <line x1="127" y1="45" x2="127" y2="80"/>
+    <!-- col0 row2-3 left of box3 -->
+    <line x1="22" y1="80" x2="22" y2="115"/>
+    <!-- col1 row2-3 right of box3 -->
+    <line x1="57" y1="80" x2="57" y2="115"/>
+    <!-- some partial lines -->
+    <line x1="162" y1="10" x2="162" y2="45"/>
+    <line x1="22" y1="10" x2="22" y2="45"/>
+  </g>
+  <!-- Dots -->
+  <g fill="#9aa0a6">
+    <circle cx="22" cy="10" r="3.5"/>
+    <circle cx="57" cy="10" r="3.5"/>
+    <circle cx="92" cy="10" r="3.5"/>
+    <circle cx="127" cy="10" r="3.5"/>
+    <circle cx="162" cy="10" r="3.5"/>
+    <circle cx="22" cy="45" r="3.5"/>
+    <circle cx="57" cy="45" r="3.5"/>
+    <circle cx="92" cy="45" r="3.5"/>
+    <circle cx="127" cy="45" r="3.5"/>
+    <circle cx="162" cy="45" r="3.5"/>
+    <circle cx="22" cy="80" r="3.5"/>
+    <circle cx="57" cy="80" r="3.5"/>
+    <circle cx="92" cy="80" r="3.5"/>
+    <circle cx="127" cy="80" r="3.5"/>
+    <circle cx="162" cy="80" r="3.5"/>
+    <circle cx="22" cy="115" r="3.5"/>
+    <circle cx="57" cy="115" r="3.5"/>
+    <circle cx="92" cy="115" r="3.5"/>
+    <circle cx="127" cy="115" r="3.5"/>
+    <circle cx="162" cy="115" r="3.5"/>
+  </g>
+  <!-- Box labels -->
+  <g font-family="system-ui" font-size="11" text-anchor="middle" font-weight="bold">
+    <text x="74" y="32" fill="#6cb1ff">1</text>
+    <text x="109" y="67" fill="#e8a14d">2</text>
+    <text x="39" y="102" fill="#6cb1ff">1</text>
+  </g>
+</svg>

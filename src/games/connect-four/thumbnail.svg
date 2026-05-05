@@ -1,0 +1,64 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Connect Four thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+  <!-- Board frame -->
+  <rect x="10" y="18" width="180" height="100" rx="5" fill="#2a2f38"/>
+  <!-- Grid slots: 7 cols x 6 rows, cell ~25x16 -->
+  <!-- Row 6 (bottom): y=105 -->
+  <!-- Row 5: y=89 -->
+  <!-- Row 4: y=73 -->
+  <!-- Row 3: y=57 -->
+  <!-- Row 2: y=41 -->
+  <!-- Row 1 (top): y=25 -->
+  <!-- cols x: 22,47,72,97,122,147,172 -->
+  <!-- Empty slots (dim circles) -->
+  <g fill="#1a1d24" stroke="#3a4050" stroke-width="1">
+    <!-- Row 1 -->
+    <circle cx="22" cy="25" r="9"/><circle cx="47" cy="25" r="9"/><circle cx="72" cy="25" r="9"/>
+    <circle cx="97" cy="25" r="9"/><circle cx="122" cy="25" r="9"/><circle cx="147" cy="25" r="9"/>
+    <circle cx="172" cy="25" r="9"/>
+    <!-- Row 2 -->
+    <circle cx="22" cy="41" r="9"/><circle cx="47" cy="41" r="9"/><circle cx="72" cy="41" r="9"/>
+    <circle cx="97" cy="41" r="9"/>
+    <circle cx="147" cy="41" r="9"/>
+    <circle cx="172" cy="41" r="9"/>
+    <!-- Row 3 -->
+    <circle cx="22" cy="57" r="9"/><circle cx="47" cy="57" r="9"/>
+    <circle cx="97" cy="57" r="9"/>
+    <circle cx="147" cy="57" r="9"/>
+    <circle cx="172" cy="57" r="9"/>
+    <!-- Row 4 -->
+    <circle cx="22" cy="73" r="9"/>
+    <circle cx="97" cy="73" r="9"/>
+    <circle cx="147" cy="73" r="9"/><circle cx="172" cy="73" r="9"/>
+    <!-- Row 5 -->
+    <circle cx="22" cy="89" r="9"/>
+    <circle cx="97" cy="89" r="9"/>
+    <circle cx="172" cy="89" r="9"/>
+    <!-- Row 6 -->
+    <circle cx="172" cy="105" r="9"/>
+  </g>
+  <!-- Player 2 discs (warm) -->
+  <g fill="#e8a14d">
+    <circle cx="47" cy="105" r="9"/>
+    <circle cx="72" cy="105" r="9"/>
+    <circle cx="97" cy="105" r="9"/>
+    <circle cx="122" cy="105" r="9"/>
+    <circle cx="122" cy="89" r="9"/>
+    <circle cx="122" cy="73" r="9"/>
+    <circle cx="122" cy="57" r="9"/>
+    <circle cx="72" cy="57" r="9"/>
+  </g>
+  <!-- Player 1 accent discs (3 stacked in col 4 = x=97, plus others) -->
+  <g fill="#6cb1ff">
+    <circle cx="22" cy="105" r="9"/>
+    <circle cx="47" cy="89" r="9"/>
+    <circle cx="47" cy="73" r="9"/>
+    <circle cx="72" cy="89" r="9"/>
+    <circle cx="72" cy="73" r="9"/>
+    <circle cx="122" cy="41" r="9"/>
+    <!-- Three stacked accent in col 5 (x=122): already shown above 3 + this makes threat -->
+    <circle cx="147" cy="105" r="9"/>
+    <circle cx="147" cy="89" r="9"/>
+    <circle cx="147" cy="73" r="9"/>
+  </g>
+</svg>
