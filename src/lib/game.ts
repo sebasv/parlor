@@ -7,6 +7,8 @@ export const LOCALE_LABELS: Readonly<Record<Locale, string>> = {
   nl: 'Nederlands',
 }
 
+export type Orientation = 'portrait' | 'landscape'
+
 export interface RulesSection {
   readonly heading: string
   readonly paragraphs?: readonly string[]
@@ -24,6 +26,8 @@ export interface GameMeta {
   readonly description: string
   readonly minPlayers: number
   readonly maxPlayers: number
+  /** Preferred device orientation. The shell shows a "rotate" overlay if mismatched. */
+  readonly preferredOrientation?: Orientation
   /** Optional how-to-play content keyed by locale. Shown before the game starts. */
   readonly rules?: Readonly<Record<Locale, RulesContent>>
 }
@@ -40,4 +44,6 @@ export interface GameModule extends GameMeta {
 
 export interface GameEntry extends GameMeta {
   readonly load: () => Promise<GameModule>
+  /** Optional inline-SVG thumbnail (raw markup) shown on the picker card. */
+  readonly thumbnail?: string
 }

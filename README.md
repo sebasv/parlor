@@ -20,8 +20,9 @@ src/
   games/
     registry.ts      glob-based discovery — no edits needed when adding games
     <game-id>/
-      meta.ts        default-exports GameMeta (id, title, description, min/maxPlayers)
-      index.ts       default-exports GameModule (meta + mount fn)
+      meta.ts          default-exports GameMeta (id, title, description, min/maxPlayers, optional rules + preferredOrientation)
+      index.ts         default-exports GameModule (meta + mount fn)
+      thumbnail.svg    optional inline-SVG card thumbnail shown on the picker
   lib/
     game.ts          GameMeta + GameModule + GameContext interfaces
     storage.ts       persistence helpers

@@ -1,4 +1,4 @@
-import { For } from 'solid-js'
+import { For, Show } from 'solid-js'
 import { games } from '../games/registry'
 import type { GameEntry } from '../lib/game'
 
@@ -24,6 +24,14 @@ export function GamePicker(props: Props) {
                 disabled={!playable(g)}
                 onClick={() => props.onPick(g)}
               >
+                <Show
+                  when={g.thumbnail}
+                  fallback={<div class="game-thumb game-thumb-placeholder">{g.title}</div>}
+                >
+                  {/* Thumbnails are static SVGs authored in this repo — no XSS surface. */}
+                  {/* eslint-disable-next-line solid/no-innerhtml */}
+                  <div class="game-thumb" innerHTML={g.thumbnail} />
+                </Show>
                 <h3>{g.title}</h3>
                 <p>{g.description}</p>
                 <small>
