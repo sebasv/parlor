@@ -257,6 +257,23 @@ const game: GameModule = {
         z-index: 10;
         /* transition is set dynamically */
       }
+
+      /* SVG overlay for path visualisation on piece selection */
+      .dr-path-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 5;
+        overflow: visible;
+      }
+      .dr-path-svg line {
+        stroke: rgba(120, 220, 160, 0.55);
+        stroke-width: 2.5;
+        stroke-dasharray: 6 4;
+        stroke-linecap: round;
+      }
       .dr-anim-piece.dr-piece-light {
         background: radial-gradient(circle at 35% 35%, #f0e8d0, #c8b89a);
         color: #3a2a0a;
@@ -314,6 +331,12 @@ const game: GameModule = {
     boardEl.setAttribute('aria-label', 'Draughts board')
     boardWrap.appendChild(boardEl)
 
+    // SVG layer for path visualisation (non-interactive, sits above board)
+    const pathSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    pathSvg.setAttribute('class', 'dr-path-svg')
+    pathSvg.setAttribute('aria-hidden', 'true')
+    boardWrap.appendChild(pathSvg)
+
     const controlsEl = document.createElement('div')
     controlsEl.className = 'dr-controls'
 
@@ -370,6 +393,51 @@ const game: GameModule = {
       return { x: (col + 0.5) / 10, y: (row + 0.5) / 10 }
     }
 
+    // ---- Path visualisation ----
+
+    /** Remove all path lines from the SVG overlay. */
+    function clearPathLines(): void {
+      while (pathSvg.firstChild) pathSvg.removeChild(pathSvg.firstChild)
+    }
+
+    /**
+     * Draw dashed diagonal lines showing the route(s) a selected piece can
+     * take.  For each legal move from the selected square we walk the full
+     * sequence of squares (from → path[0] → path[1] → …) and emit a <line>
+     * element per segment.  Duplicate segments (shared prefixes in multi-
+     * path capture trees) are deduplicated so the overlay stays clean.
+     *
+     * Coordinates are expressed as percentages of the board-wrap size so they
+     * scale correctly at any board size without needing a ResizeObserver.
+     */
+    function drawPathLines(moves: Move[]): void {
+      clearPathLines()
+      if (moves.length === 0) return
+
+      const drawnSegments = new Set<string>()
+
+      for (const move of moves) {
+        const squares = [move.from, ...move.path]
+        for (let i = 0; i < squares.length - 1; i++) {
+          const a = squares[i]
+          const b = squares[i + 1]
+          const key = `${Math.min(a, b)}-${Math.max(a, b)}`
+          if (drawnSegments.has(key)) continue
+          drawnSegments.add(key)
+
+          const fa = squareFraction(a)
+          const fb = squareFraction(b)
+
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+          line.setAttribute('x1', `${fa.x * 100}%`)
+          line.setAttribute('y1', `${fa.y * 100}%`)
+          line.setAttribute('x2', `${fb.x * 100}%`)
+          line.setAttribute('y2', `${fb.y * 100}%`)
+          pathSvg.appendChild(line)
+        }
+      }
+    }
+
     // ---- Animation ----
 
     /**
@@ -379,7 +447,7 @@ const game: GameModule = {
      *
      * During animation, `animating` is true so input is blocked.
      */
-    function animateMove(move: Move, onDone: () => void): void {
+    function animateMove(move: Move, hopMs: number, onDone: () => void): void {
       animating = true
 
       const piece = state.board[move.from]
@@ -392,7 +460,7 @@ const game: GameModule = {
 
       const isMultiJump = move.path.length > 1
       const hopsPerCapture = capturePerHop(move)
-      const HOP_MS = 250 // duration per hop
+      const HOP_MS = hopMs
 
       // ---- Prepare board visuals for the animation ----
 
@@ -642,38 +710,37 @@ const game: GameModule = {
         // Track captures
         capturedByPlayer[state.turn] += move.captured.length
 
-        // Deselect before animating so the board renders cleanly
+        // Deselect and clear path lines before animating
         selectedIdx = null
         movesFromSelected = []
+        clearPathLines()
 
-        if (move.path.length > 1 || move.captured.length > 0) {
-          // Animate the move, then commit state
-          const moveToApply = move
-          render() // render the "in-progress" board (piece still at source, no selection)
-          animateMove(moveToApply, () => {
-            state = applyMove(state, moveToApply)
-            render()
-          })
-        } else {
-          // Single quiet step: no animation needed, just apply immediately
-          state = applyMove(state, move)
+        // Animate all moves: quiet single-step uses a shorter 200 ms duration,
+        // captures keep the existing 250 ms per-hop timing.
+        const moveToApply = move
+        const hopMs = move.captured.length > 0 ? 250 : 200
+        render() // render the "in-progress" board (piece still at source, no selection)
+        animateMove(moveToApply, hopMs, () => {
+          state = applyMove(state, moveToApply)
           render()
-        }
+        })
         return
       }
 
       if (selectableFrom.has(idx)) {
-        // Select this piece
+        // Select this piece; draw path lines showing all routes to legal destinations
         selectedIdx = idx
         movesFromSelected = allMoves.filter((m) => m.from === idx)
         render()
+        drawPathLines(movesFromSelected)
         return
       }
 
-      // Clicked on empty/unselectable square: deselect (unless mid-jump forces selection)
+      // Clicked on empty/unselectable square: deselect and clear path lines
       if (state.midJump === null) {
         selectedIdx = null
         movesFromSelected = []
+        clearPathLines()
         render()
       }
     }
@@ -693,6 +760,7 @@ const game: GameModule = {
       capturedByPlayer = [0, 0]
       gameOver = false
       animating = false
+      clearPathLines()
       render()
     }
 
