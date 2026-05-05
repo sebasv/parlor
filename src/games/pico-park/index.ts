@@ -294,6 +294,7 @@ function renderTouchControls(
   ctx2d: CanvasRenderingContext2D,
   buttons: TouchButton[],
   activeButtons: Set<string>,
+  playerNames: readonly string[],
 ): void {
   for (const btn of buttons) {
     const key = `${btn.player}-${btn.action}`
@@ -325,6 +326,28 @@ function renderTouchControls(
   ctx2d.moveTo(midX, 28)
   ctx2d.lineTo(midX, h)
   ctx2d.stroke()
+
+  // Player name + colour labels above the control area
+  const btnH = 72
+  const margin = 12
+  const bottomY = h - btnH - margin
+  const labelY = bottomY - 8
+  for (let p = 0; p <= 1; p++) {
+    const halfW = ctx2d.canvas.width / 2
+    const centerX = p === 0 ? halfW / 2 : halfW + halfW / 2
+    // Coloured dot indicator
+    const dotR = 5
+    ctx2d.fillStyle = PLAYER_COLORS[p]
+    ctx2d.beginPath()
+    ctx2d.arc(centerX - 40, labelY - 4, dotR, 0, Math.PI * 2)
+    ctx2d.fill()
+    // Player name
+    ctx2d.fillStyle = PLAYER_COLORS[p]
+    ctx2d.font = 'bold 11px system-ui'
+    ctx2d.textAlign = 'left'
+    const name = playerNames[p] ?? `P${p + 1}`
+    ctx2d.fillText(name, centerX - 40 + dotR * 2 + 3, labelY)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -703,7 +726,7 @@ const game: GameModule = {
 
       // Clear and render
       renderFrame(ctx2d, level, chars, ctx.players, level.plateActive, levelIndex, won)
-      renderTouchControls(ctx2d, buttons, activeButtons)
+      renderTouchControls(ctx2d, buttons, activeButtons, ctx.players)
 
       rafId = requestAnimationFrame(loop)
     }

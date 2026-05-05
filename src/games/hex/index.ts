@@ -343,6 +343,14 @@ const CSS = `
 .hex-legend-item[data-player='1'] { --pill-color: var(--hex-p1); }
 .hex-legend-item[data-player='2'] { --pill-color: var(--hex-p2); }
 
+.hex-legend-swatch {
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--pill-color);
+}
+
 .hex-legend-item[data-active='true'] {
   border-color: var(--pill-color);
   background: color-mix(in srgb, var(--pill-color) 18%, var(--bg-elev, #1a1d24));
@@ -467,7 +475,11 @@ const game: GameModule = {
       item.className = 'hex-legend-item'
       item.setAttribute('data-player', String(i))
       const edgeLabel = is3Player ? edgeLabels3[i] : edgeLabels2[i]
-      item.textContent = `${ctx.players[i]} — ${edgeLabel}`
+      const swatch = document.createElement('span')
+      swatch.className = 'hex-legend-swatch'
+      swatch.setAttribute('aria-hidden', 'true')
+      item.appendChild(swatch)
+      item.appendChild(document.createTextNode(`${ctx.players[i]} — ${edgeLabel}`))
       legendEl.appendChild(item)
       legendItems.push(item)
     }

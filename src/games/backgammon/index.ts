@@ -201,7 +201,20 @@ const game: GameModule = {
       .bg-player-info.bg-active {
         animation: bg-pulse 1.5s ease-in-out infinite;
       }
-      .bg-player-name { font-size: 0.85rem; font-weight: 600; }
+      .bg-player-name {
+        display: flex;
+        align-items: center;
+        gap: 0.4em;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .bg-checker-swatch {
+        width: 0.75em;
+        height: 0.75em;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.25);
+      }
       .bg-player-counts { font-size: 0.8rem; color: var(--fg-dim); }
 
       .bg-dice-row {
@@ -300,7 +313,11 @@ const game: GameModule = {
     p0Info.setAttribute('data-player', '0')
     const p0NameEl = document.createElement('div')
     p0NameEl.className = 'bg-player-name'
-    p0NameEl.textContent = p0Name
+    const p0Swatch = document.createElement('span')
+    p0Swatch.className = 'bg-checker-swatch'
+    p0Swatch.style.background = CHECKER_FILL[0]
+    p0NameEl.appendChild(p0Swatch)
+    p0NameEl.appendChild(document.createTextNode(p0Name))
     const p0Counts = document.createElement('div')
     p0Counts.className = 'bg-player-counts'
     p0Info.appendChild(p0NameEl)
@@ -311,7 +328,11 @@ const game: GameModule = {
     p1Info.setAttribute('data-player', '1')
     const p1NameEl = document.createElement('div')
     p1NameEl.className = 'bg-player-name'
-    p1NameEl.textContent = p1Name
+    const p1Swatch = document.createElement('span')
+    p1Swatch.className = 'bg-checker-swatch'
+    p1Swatch.style.background = CHECKER_FILL[1]
+    p1NameEl.appendChild(p1Swatch)
+    p1NameEl.appendChild(document.createTextNode(p1Name))
     const p1Counts = document.createElement('div')
     p1Counts.className = 'bg-player-counts'
     p1Info.appendChild(p1NameEl)
