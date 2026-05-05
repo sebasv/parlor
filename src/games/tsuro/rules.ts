@@ -67,12 +67,14 @@ export interface GameState {
 // For 4 players: top, right, bottom, left
 
 function perimeterStart(playerIndex: number, playerCount: number): PawnPos {
-  // For each side: pick the tile slot and which port faces outward (the pawn
-  // starts on the outer port, facing into the board).
-  // We place the pawn at a mid-edge tile. Port that faces outward is the one
-  // the pawn starts at; after tile placement the pawn moves inward.
+  // Pawns start one step *outside* the board so that placementSlot() correctly
+  // points into the first real tile slot and advancePawn() fires when that tile
+  // is placed.  Each position uses an inward-facing port so that portDelta(port)
+  // steps into the board on the first advance.
+  //
+  // Ghost positions (out-of-bounds col/row) are intentional; renderBoard handles
+  // them via pawnStartCoord which projects onto the nearest board edge.
 
-  // Side assignments by player count
   const sides: Array<'top' | 'right' | 'bottom' | 'left'> =
     playerCount === 2
       ? ['top', 'bottom']
@@ -87,17 +89,17 @@ function perimeterStart(playerIndex: number, playerCount: number): PawnPos {
 
   switch (side) {
     case 'top':
-      // Top-edge tile: slot (col=mid, row=0), pawn on port 0 (top-left of that tile)
-      return { col: mid, row: 0, port: 0 }
+      // Ghost cell above row 0; port 4 faces down (portDelta = [0,+1]) into row 0.
+      return { col: mid, row: -1, port: 4 }
     case 'right':
-      // Right-edge tile: slot (col=BOARD_COLS-1, row=mid), pawn on port 2 (right-top of that tile)
-      return { col: BOARD_COLS - 1, row: mid, port: 2 }
+      // Ghost cell right of last col; port 7 faces left (portDelta = [-1,0]) into last col.
+      return { col: BOARD_COLS, row: mid, port: 7 }
     case 'bottom':
-      // Bottom-edge tile: slot (col=mid+1, row=BOARD_ROWS-1), pawn on port 4
-      return { col: mid + 1, row: BOARD_ROWS - 1, port: 4 }
+      // Ghost cell below last row; port 0 faces up (portDelta = [0,-1]) into last row.
+      return { col: mid + 1, row: BOARD_ROWS, port: 0 }
     case 'left':
-      // Left-edge tile: slot (col=0, row=mid+1), pawn on port 6
-      return { col: 0, row: mid + 1, port: 6 }
+      // Ghost cell left of col 0; port 2 faces right (portDelta = [+1,0]) into col 0.
+      return { col: -1, row: mid + 1, port: 2 }
   }
 }
 
@@ -192,9 +194,11 @@ function advancePawn(pawn: Pawn, board: (Tile | null)[][]): PawnPos {
   }
 }
 
-// Is the given pawn position off the board?
+// Is the given pawn position the elimination sentinel {col:-1, row:-1}?
+// Ghost starting positions (e.g. col=-1 for left-edge pawns) are NOT eliminated;
+// only the explicit sentinel returned by advancePawn is.
 export function isEliminated(pos: PawnPos): boolean {
-  return pos.col === -1
+  return pos.col === -1 && pos.row === -1
 }
 
 // ---------------------------------------------------------------------------

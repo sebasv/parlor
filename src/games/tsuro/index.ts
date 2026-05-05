@@ -12,7 +12,7 @@ import {
   rotateCandidateTile,
 } from './rules'
 import type { Port } from './tiles'
-import { portPosition, TILE_SIZE, tilePathD } from './tiles'
+import { oppositePort, portDelta, portPosition, TILE_SIZE, tilePathD } from './tiles'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -206,27 +206,21 @@ function portCoord(col: number, row: number, port: Port): [number, number] {
 // ---------------------------------------------------------------------------
 // Pawn start indicator position (outside the board grid)
 // ---------------------------------------------------------------------------
-// Pawns that haven't been moved yet sit outside the board, near their start port.
+// Ghost starting positions have out-of-bounds (col, row) with an inward-facing
+// port.  We compute the visual coordinate by projecting onto the real board
+// edge: find the entry port on the first real tile and nudge outward from it.
 
 function pawnStartCoord(port: Port, col: number, row: number): [number, number] {
-  const [px, py] = portCoord(col, row, port)
-  // Nudge outside the board by a small offset
+  // Step from the ghost cell into the first real tile slot.
+  const [dc, dr] = portDelta(port)
+  const realCol = col + dc
+  const realRow = row + dr
+  // The pawn appears at the entry port of the real tile, nudged outward.
+  const entryPort = oppositePort(port)
+  const [px, py] = portCoord(realCol, realRow, entryPort)
   const offset = 14
-  const side = (port <= 1 ? 'top' : port <= 3 ? 'right' : port <= 5 ? 'bottom' : 'left') as
-    | 'top'
-    | 'right'
-    | 'bottom'
-    | 'left'
-  switch (side) {
-    case 'top':
-      return [px, py - offset]
-    case 'right':
-      return [px + offset, py]
-    case 'bottom':
-      return [px, py + offset]
-    case 'left':
-      return [px - offset, py]
-  }
+  // Nudge outward — opposite of the inward direction (portDelta of our port).
+  return [px - dc * offset, py - dr * offset]
 }
 
 // ---------------------------------------------------------------------------
