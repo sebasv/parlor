@@ -8,64 +8,85 @@ import {
   type Move,
   type Pawn,
   type PlayerIndex,
-  STARTS,
   skipTurn,
   stepsToHomeEntry,
   winner,
 } from './rules'
 
 // ---------------------------------------------------------------------------
-// Board layout constants
+// Shared SVG canvas constants
 // ---------------------------------------------------------------------------
-
-// The board renders as a 480x480 SVG grid inside a 600x500 canvas.
-// Each of the 15x15 cells is CELL px wide/tall.
 
 const SVG_W = 600
 const SVG_H = 500
-const BOARD_X = 60 // left offset of the 15x15 grid within the SVG
-const BOARD_Y = 10 // top offset
+
+// ---------------------------------------------------------------------------
+// Player colours and names
+// ---------------------------------------------------------------------------
+
+// Colours indexed by visual quadrant slot (0–3 for 4-quad board, 0–2 for 3-leg).
+const SLOT_COLORS = ['#ef4444', '#facc15', '#22c55e', '#3b82f6'] as const
+const SLOT_NAMES = ['Red', 'Yellow', 'Green', 'Blue'] as const
+
+// ---------------------------------------------------------------------------
+// Board geometry type
+// ---------------------------------------------------------------------------
+
+/**
+ * BoardGeometry captures all coordinate data needed to render one board variant
+ * and convert between track positions and SVG coordinates.
+ *
+ * The geometry is indexed by visual slot (not by logical player index). The
+ * caller maps logical player → slot via GameState.quadrantSlots.
+ */
+interface BoardGeometry {
+  /** SVG [cx, cy] for each square on the main outer track (length = trackLength). */
+  mainTrack: readonly [number, number][]
+  /**
+   * Home column coordinates per slot: homeCol[slot][homeIdx] = [cx, cy].
+   * homeIdx 0 = first step into home, 5 = finished square (centre).
+   */
+  homeCol: readonly (readonly [number, number][])[]
+  /**
+   * Yard pawn slot coordinates per slot: yard[slot][pawnSlot] = [cx, cy].
+   * Each player has 4 pawns, so 4 entries per slot.
+   */
+  yard: readonly (readonly [number, number][])[]
+  /** SVG [cx, cy] of the shared centre/finish point. */
+  centre: [number, number]
+  /** Whether coordinates are raw SVG pixels (true) or 15×15 grid cells (false). */
+  rawPixels: boolean
+  /** Cell size (only meaningful when rawPixels === false). */
+  cell: number
+}
+
+// ---------------------------------------------------------------------------
+// 4-quadrant (standard) board geometry — used for 2 and 4 players
+// ---------------------------------------------------------------------------
+
+// The 4-quad board renders as a 480×480 SVG grid inside a 600×500 canvas.
+// Each of the 15×15 cells is CELL px wide/tall.
+const BOARD_X = 60
+const BOARD_Y = 10
 const BOARD_SIZE = 480
 const CELL = BOARD_SIZE / 15 // 32 px per cell
 
-// Player colours: Red, Yellow, Green, Blue
-const PLAYER_COLORS = ['#ef4444', '#facc15', '#22c55e', '#3b82f6'] as const
-const PLAYER_NAMES = ['Red', 'Yellow', 'Green', 'Blue'] as const
-
-// ---------------------------------------------------------------------------
-// Board coordinate helpers
-// ---------------------------------------------------------------------------
-
-// Returns SVG [cx, cy] centre for 15x15 grid cell at [col, row] (0-indexed).
+// Returns SVG [cx, cy] centre for 15×15 grid cell at [col, row] (0-indexed).
 function cellCentre(col: number, row: number): [number, number] {
   return [BOARD_X + col * CELL + CELL / 2, BOARD_Y + row * CELL + CELL / 2]
 }
 
-// ---------------------------------------------------------------------------
-// Standard Ludo 15x15 track — 52 squares, clockwise
-// ---------------------------------------------------------------------------
-//
-// Player entry points on the main track:
-//   Player 0 (Red):    index 0   → grid cell (6, 13)
-//   Player 1 (Yellow): index 13  → grid cell (0, 5)
-//   Player 2 (Green):  index 26  → grid cell (8, 0)
-//   Player 3 (Blue):   index 39  → grid cell (14, 7)
-//
-// Each player's home-column entry is one step before completing the loop:
-//   Player 0: after track index 51 → home col at col 7
-//   Player 1: after track index 12 → home row at row 7 (cols 1..6)
-//   Player 2: after track index 25 → home col at col 7
-//   Player 3: after track index 38 → home row at row 7 (cols 8..13)
-
-const MAIN_TRACK: readonly [number, number][] = [
-  // Player 0 (Red) section — squares 0..12
+// 52-square main track (clockwise).
+// Entry points by slot: slot 0 → index 0, slot 1 → index 13, slot 2 → index 26, slot 3 → index 39.
+const MAIN_TRACK_52: readonly [number, number][] = [
+  // Slot 0 (Red) section — squares 0..12
   [6, 13],
   [6, 12],
   [6, 11],
   [6, 10],
   [6, 9],
   [6, 8],
-  [6, 7], // index 6: corner square before Yellow home row
+  [6, 7],
   [5, 6],
   [4, 6],
   [3, 6],
@@ -73,14 +94,14 @@ const MAIN_TRACK: readonly [number, number][] = [
   [1, 6],
   [0, 6],
 
-  // Player 1 (Yellow) section — squares 13..25
+  // Slot 1 (Yellow) section — squares 13..25
   [0, 5],
   [0, 4],
   [0, 3],
   [0, 2],
   [0, 1],
   [0, 0],
-  [1, 0], // index 19: corner square
+  [1, 0],
   [2, 0],
   [3, 0],
   [4, 0],
@@ -88,14 +109,14 @@ const MAIN_TRACK: readonly [number, number][] = [
   [6, 0],
   [7, 0],
 
-  // Player 2 (Green) section — squares 26..38
+  // Slot 2 (Green) section — squares 26..38
   [8, 0],
   [8, 1],
   [8, 2],
   [8, 3],
   [8, 4],
   [8, 5],
-  [8, 6], // index 32: corner square
+  [8, 6],
   [9, 6],
   [10, 6],
   [11, 6],
@@ -103,25 +124,25 @@ const MAIN_TRACK: readonly [number, number][] = [
   [13, 6],
   [14, 6],
 
-  // Player 3 (Blue) section — squares 39..51
+  // Slot 3 (Blue) section — squares 39..51
   [14, 7],
   [14, 8],
   [14, 9],
   [14, 10],
   [14, 11],
   [14, 12],
-  [14, 13], // index 45: corner square
+  [14, 13],
   [13, 14],
   [12, 14],
   [11, 14],
   [10, 14],
   [9, 14],
   [8, 14],
-] // 52 entries total (4 × 13)
+] // 52 entries total
 
-// Home columns: 6 squares per player (index 0..5). Index 5 = finished centre.
-const HOME_COL_COORDS: readonly (readonly [number, number][])[] = [
-  // Player 0 (Red): col 7, rows 13 → 8 (towards centre)
+// Home columns (6 squares per slot, index 0 = first step, 5 = finished).
+const HOME_COL_52: readonly (readonly [number, number][])[] = [
+  // Slot 0 (Red): col 7, rows 13 → 8
   [
     [7, 13],
     [7, 12],
@@ -130,7 +151,7 @@ const HOME_COL_COORDS: readonly (readonly [number, number][])[] = [
     [7, 9],
     [7, 8],
   ],
-  // Player 1 (Yellow): row 7, cols 1 → 6 (towards centre)
+  // Slot 1 (Yellow): row 7, cols 1 → 6
   [
     [1, 7],
     [2, 7],
@@ -139,7 +160,7 @@ const HOME_COL_COORDS: readonly (readonly [number, number][])[] = [
     [5, 7],
     [6, 7],
   ],
-  // Player 2 (Green): col 7, rows 1 → 6 (towards centre)
+  // Slot 2 (Green): col 7, rows 1 → 6
   [
     [7, 1],
     [7, 2],
@@ -148,7 +169,7 @@ const HOME_COL_COORDS: readonly (readonly [number, number][])[] = [
     [7, 5],
     [7, 6],
   ],
-  // Player 3 (Blue): row 7, cols 13 → 8 (towards centre)
+  // Slot 3 (Blue): row 7, cols 13 → 8
   [
     [13, 7],
     [12, 7],
@@ -159,30 +180,30 @@ const HOME_COL_COORDS: readonly (readonly [number, number][])[] = [
   ],
 ]
 
-// Yard pawn slots: 4 per player, spread across their 6×6 corner area.
-const YARD_COORDS: readonly (readonly [number, number][])[] = [
-  // Player 0 (Red): bottom-left corner
+// Yard pawn slots (4 per player, in their 6×6 corner area).
+const YARD_52: readonly (readonly [number, number][])[] = [
+  // Slot 0 (Red): bottom-left corner
   [
     [2, 11],
     [4, 11],
     [2, 13],
     [4, 13],
   ],
-  // Player 1 (Yellow): top-left corner
+  // Slot 1 (Yellow): top-left corner
   [
     [2, 1],
     [4, 1],
     [2, 3],
     [4, 3],
   ],
-  // Player 2 (Green): top-right corner
+  // Slot 2 (Green): top-right corner
   [
     [10, 1],
     [12, 1],
     [10, 3],
     [12, 3],
   ],
-  // Player 3 (Blue): bottom-right corner
+  // Slot 3 (Blue): bottom-right corner
   [
     [10, 11],
     [12, 11],
@@ -191,29 +212,204 @@ const YARD_COORDS: readonly (readonly [number, number][])[] = [
   ],
 ]
 
-// ---------------------------------------------------------------------------
-// SVG board builder (called once; pawns rendered separately)
-// ---------------------------------------------------------------------------
-
-function buildBoardSVG(): SVGSVGElement {
-  const NS = 'http://www.w3.org/2000/svg'
-
-  function svgEl<K extends keyof SVGElementTagNameMap>(
-    tag: K,
-    attrs: Record<string, string | number>,
-  ): SVGElementTagNameMap[K] {
-    const el = document.createElementNS(NS, tag)
-    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v))
-    return el
+function make4QuadGeometry(): BoardGeometry {
+  return {
+    mainTrack: MAIN_TRACK_52.map(([c, r]) => cellCentre(c, r)),
+    homeCol: HOME_COL_52.map((col) => col.map(([c, r]) => cellCentre(c, r))),
+    yard: YARD_52.map((slots) => slots.map(([c, r]) => cellCentre(c, r))),
+    centre: cellCentre(7, 7),
+    rawPixels: true,
+    cell: CELL,
   }
+}
 
+// ---------------------------------------------------------------------------
+// 3-leg triangular board geometry — used for 3 players
+// ---------------------------------------------------------------------------
+//
+// The triangular board is rendered as raw SVG pixel coordinates within the
+// same 600×500 canvas. It has three legs, each with 13 track squares, forming
+// a 39-square outer track. Entries are 13 squares apart — perfectly symmetric.
+//
+// Triangle vertices (visual corners where yards sit):
+//   V0 (slot 0, Red):    bottom centre  — track entry at index 0
+//   V1 (slot 1, Yellow): top left       — track entry at index 13
+//   V2 (slot 2, Green):  top right      — track entry at index 26
+//
+// The track runs clockwise: V0→V1→V2→V0 (bottom→top-left→top-right→bottom).
+// Each leg is divided into 14 equal segments; the 13 intermediate points (not
+// the vertex corners, which are reserved for yard areas) form the track.
+//
+// Home columns extend from each entry point inward toward the shared centre.
+// The centre of the triangle is the shared finish area.
+
+// Compute pixel coordinates for the 3-leg board.
+// Triangle vertices in SVG space.
+const TRI_CX = SVG_W / 2 // 300 — horizontal centre of the canvas
+const TRI_CY = SVG_H / 2 + 10 // 260 — slightly below canvas midpoint
+
+// Use circumradius that leaves enough margin for yard areas.
+const TRI_R = 185
+
+// Equilateral triangle vertices (pointing upward, clockwise from bottom).
+// Angle 90° = bottom vertex; 210° = top-left; 330° = top-right (all in standard math angles).
+// In SVG y increases downward, so we negate the sin component.
+function triVertex(angleDeg: number): [number, number] {
+  const a = (angleDeg * Math.PI) / 180
+  return [TRI_CX + TRI_R * Math.cos(a), TRI_CY - TRI_R * Math.sin(a)]
+}
+
+// V0 = bottom (270° from top = -90° from right = 90° below)
+// To get bottom-centre pointing down: angle = -90° (270°)
+// V0 bottom, V1 top-left, V2 top-right — clockwise in SVG (y-down)
+const TRI_V0 = triVertex(-90) // bottom centre
+const TRI_V1 = triVertex(-90 + 120) // top-left (30°)
+const TRI_V2 = triVertex(-90 + 240) // top-right (150°)
+
+// Centre of the triangle (centroid).
+const TRI_CENTRE: [number, number] = [
+  (TRI_V0[0] + TRI_V1[0] + TRI_V2[0]) / 3,
+  (TRI_V0[1] + TRI_V1[1] + TRI_V2[1]) / 3,
+]
+
+/**
+ * Linearly interpolate between two points.
+ * t=0 → a, t=1 → b.
+ */
+function lerp2(a: [number, number], b: [number, number], t: number): [number, number] {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+}
+
+/**
+ * Build the 39-square clockwise main track for the triangular board.
+ *
+ * Each leg runs from one vertex to the next (clockwise).
+ * The leg is divided into 14 equal steps; we use intermediate points 1..13
+ * (not the vertex itself, which is the yard area boundary).
+ *
+ * Leg 0: V0 → V1 (13 squares, indices 0..12)
+ * Leg 1: V1 → V2 (13 squares, indices 13..25)
+ * Leg 2: V2 → V0 (13 squares, indices 26..38)
+ *
+ * Index 0 is player 0's entry, index 13 is player 1's, index 26 is player 2's.
+ */
+function buildTriangleTrack(): [number, number][] {
+  const legs: [[number, number], [number, number]][] = [
+    [TRI_V0, TRI_V1],
+    [TRI_V1, TRI_V2],
+    [TRI_V2, TRI_V0],
+  ]
+  const track: [number, number][] = []
+  for (const [from, to] of legs) {
+    for (let i = 0; i < 13; i++) {
+      // Divide leg into 14 segments; square i sits at position (i+1)/14 from 'from'
+      // We offset inward slightly from the outer edge so squares sit just inside
+      const t = (i + 1) / 14
+      track.push(lerp2(from, to, t))
+    }
+  }
+  return track
+}
+
+/**
+ * Build the 6-step home column for each slot on the triangular board.
+ * The column runs from the entry point (track index 0/13/26) toward the centre.
+ * homeCol[slot][0] = first square inside home, [5] = finished (near centre).
+ *
+ * The entry square is track[slot*13]. The column then heads straight to the centre.
+ */
+function buildTriangleHomeCols(track: [number, number][]): [number, number][][] {
+  const homeCols: [number, number][][] = []
+  for (let slot = 0; slot < 3; slot++) {
+    const entryPt = track[slot * 13] // entry square on main track
+    const col: [number, number][] = []
+    for (let step = 1; step <= 6; step++) {
+      // Step 0 would be the entry itself (on main track), step 6 = near centre
+      col.push(lerp2(entryPt, TRI_CENTRE, step / 6))
+    }
+    homeCols.push(col)
+  }
+  return homeCols
+}
+
+/**
+ * Build 4 yard pawn positions per slot on the triangular board.
+ * Yards are placed in the corner area near each vertex, offset inward.
+ */
+function buildTriangleYards(): [number, number][][] {
+  const vertices = [TRI_V0, TRI_V1, TRI_V2]
+  const yards: [number, number][][] = []
+  for (const vertex of vertices) {
+    // Shift the vertex toward the centroid for the yard centre, then spread 4 pawns.
+    const yardCentre = lerp2(vertex, TRI_CENTRE, 0.18)
+    // Two rows × two columns around the yard centre, offset by ~18px.
+    const off = 18
+    yards.push([
+      [yardCentre[0] - off, yardCentre[1] - off],
+      [yardCentre[0] + off, yardCentre[1] - off],
+      [yardCentre[0] - off, yardCentre[1] + off],
+      [yardCentre[0] + off, yardCentre[1] + off],
+    ])
+  }
+  return yards
+}
+
+function make3LegGeometry(): BoardGeometry {
+  const track = buildTriangleTrack()
+  const homeCols = buildTriangleHomeCols(track)
+  const yards = buildTriangleYards()
+  return {
+    mainTrack: track,
+    homeCol: homeCols,
+    yard: yards,
+    centre: TRI_CENTRE,
+    rawPixels: true,
+    cell: 16, // approximate "cell" size for pawn radius scaling
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Geometry cache (built once per player count)
+// ---------------------------------------------------------------------------
+
+let cachedGeometry: { playerCount: number; geo: BoardGeometry } | null = null
+
+function getGeometry(playerCount: number): BoardGeometry {
+  if (cachedGeometry && cachedGeometry.playerCount === playerCount) {
+    return cachedGeometry.geo
+  }
+  const geo = playerCount === 3 ? make3LegGeometry() : make4QuadGeometry()
+  cachedGeometry = { playerCount, geo }
+  return geo
+}
+
+// ---------------------------------------------------------------------------
+// SVG helpers
+// ---------------------------------------------------------------------------
+
+const NS = 'http://www.w3.org/2000/svg'
+
+function svgEl<K extends keyof SVGElementTagNameMap>(
+  tag: K,
+  attrs: Record<string, string | number>,
+): SVGElementTagNameMap[K] {
+  const el = document.createElementNS(NS, tag)
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v))
+  return el
+}
+
+// ---------------------------------------------------------------------------
+// 4-quadrant board SVG builder
+// ---------------------------------------------------------------------------
+
+function build4QuadBoardSVG(activeSlots: readonly number[]): SVGSVGElement {
   const svg = svgEl('svg', {
     viewBox: `0 0 ${SVG_W} ${SVG_H}`,
     role: 'img',
     'aria-label': 'Ludo board',
   })
 
-  // SVG background
+  // Background
   svg.appendChild(svgEl('rect', { x: 0, y: 0, width: SVG_W, height: SVG_H, fill: '#1a1d24' }))
 
   // Board base
@@ -247,49 +443,51 @@ function buildBoardSVG(): SVGSVGElement {
     }
   }
 
-  // Coloured yard corners (6×6 boxes)
+  // Yard corner boxes (6×6 each)
   const YARD_BOXES = [
-    { col: 0, row: 9, p: 0 }, // Red — bottom-left
-    { col: 0, row: 0, p: 1 }, // Yellow — top-left
-    { col: 9, row: 0, p: 2 }, // Green — top-right
-    { col: 9, row: 9, p: 3 }, // Blue — bottom-right
+    { col: 0, row: 9, slot: 0 }, // Red — bottom-left
+    { col: 0, row: 0, slot: 1 }, // Yellow — top-left
+    { col: 9, row: 0, slot: 2 }, // Green — top-right
+    { col: 9, row: 9, slot: 3 }, // Blue — bottom-right
   ]
-  for (const { col, row, p } of YARD_BOXES) {
+  for (const { col, row, slot } of YARD_BOXES) {
+    const active = activeSlots.includes(slot)
     svg.appendChild(
       svgEl('rect', {
         x: BOARD_X + col * CELL,
         y: BOARD_Y + row * CELL,
         width: CELL * 6,
         height: CELL * 6,
-        fill: PLAYER_COLORS[p],
-        opacity: 0.25,
-        stroke: PLAYER_COLORS[p],
+        fill: SLOT_COLORS[slot],
+        opacity: active ? 0.25 : 0.06,
+        stroke: SLOT_COLORS[slot],
         'stroke-width': 2,
       }),
     )
   }
 
-  // Coloured home column strips
+  // Home column strips
   const HOME_STRIPS = [
-    { col: 7, row: 8, w: 1, h: 6, p: 0 }, // Red: col 7, rows 8..13
-    { col: 1, row: 7, w: 6, h: 1, p: 1 }, // Yellow: row 7, cols 1..6
-    { col: 7, row: 1, w: 1, h: 6, p: 2 }, // Green: col 7, rows 1..6
-    { col: 8, row: 7, w: 6, h: 1, p: 3 }, // Blue: row 7, cols 8..13
+    { col: 7, row: 8, w: 1, h: 6, slot: 0 }, // Red: col 7, rows 8..13
+    { col: 1, row: 7, w: 6, h: 1, slot: 1 }, // Yellow: row 7, cols 1..6
+    { col: 7, row: 1, w: 1, h: 6, slot: 2 }, // Green: col 7, rows 1..6
+    { col: 8, row: 7, w: 6, h: 1, slot: 3 }, // Blue: row 7, cols 8..13
   ]
-  for (const { col, row, w, h, p } of HOME_STRIPS) {
+  for (const { col, row, w, h, slot } of HOME_STRIPS) {
+    const active = activeSlots.includes(slot)
     svg.appendChild(
       svgEl('rect', {
         x: BOARD_X + col * CELL,
         y: BOARD_Y + row * CELL,
         width: CELL * w,
         height: CELL * h,
-        fill: PLAYER_COLORS[p],
-        opacity: 0.35,
+        fill: SLOT_COLORS[slot],
+        opacity: active ? 0.35 : 0.08,
       }),
     )
   }
 
-  // Centre hexagonal winning area
+  // Centre hexagonal finish area
   const cx7 = BOARD_X + 7 * CELL
   const cy7 = BOARD_Y + 7 * CELL
   svg.appendChild(
@@ -307,16 +505,16 @@ function buildBoardSVG(): SVGSVGElement {
     }),
   )
 
-  // Start square highlights (one per player)
-  for (let p = 0; p < 4; p++) {
-    const [col, row] = MAIN_TRACK[STARTS[p]]
+  // Start square highlights (one per active slot)
+  for (const slot of activeSlots) {
+    const [cx, cy] = MAIN_TRACK_52[slot * 13]
     svg.appendChild(
       svgEl('rect', {
-        x: BOARD_X + col * CELL + 1,
-        y: BOARD_Y + row * CELL + 1,
+        x: BOARD_X + cx * CELL + 1,
+        y: BOARD_Y + cy * CELL + 1,
         width: CELL - 2,
         height: CELL - 2,
-        fill: PLAYER_COLORS[p],
+        fill: SLOT_COLORS[slot],
         opacity: 0.5,
         rx: 3,
       }),
@@ -327,25 +525,184 @@ function buildBoardSVG(): SVGSVGElement {
 }
 
 // ---------------------------------------------------------------------------
-// Pawn SVG coordinate lookup
+// 3-leg triangular board SVG builder
 // ---------------------------------------------------------------------------
 
-function pawnCoords(pawn: Pawn): [number, number] {
-  const { pos, player, slot } = pawn
+function build3LegBoardSVG(geo: BoardGeometry): SVGSVGElement {
+  const svg = svgEl('svg', {
+    viewBox: `0 0 ${SVG_W} ${SVG_H}`,
+    role: 'img',
+    'aria-label': 'Ludo board — 3 players',
+  })
+
+  // Background
+  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: SVG_W, height: SVG_H, fill: '#1a1d24' }))
+
+  const track = geo.mainTrack
+  const [cx, cy] = geo.centre
+
+  // Board polygon background (the triangle, slightly inset from vertex areas)
+  // Use a hexagonal fill that covers the play area.
+  const vertices = [TRI_V0, TRI_V1, TRI_V2]
+  svg.appendChild(
+    svgEl('polygon', {
+      points: vertices.map(([x, y]) => `${x},${y}`).join(' '),
+      fill: '#e8e0d0',
+      stroke: '#555',
+      'stroke-width': 2,
+    }),
+  )
+
+  // Track square backgrounds
+  for (const [x, y] of track) {
+    svg.appendChild(
+      svgEl('rect', {
+        x: x - 11,
+        y: y - 11,
+        width: 22,
+        height: 22,
+        fill: '#fff',
+        stroke: '#bbb',
+        'stroke-width': 0.5,
+        rx: 2,
+      }),
+    )
+  }
+
+  // Home column strips — coloured rectangles from entry toward centre
+  for (let slot = 0; slot < 3; slot++) {
+    const entryPt = track[slot * 13]
+    // Draw a coloured strip from entry to near-centre
+    const nearCentre = lerp2(entryPt, geo.centre as [number, number], 0.92)
+    svg.appendChild(
+      svgEl('line', {
+        x1: entryPt[0],
+        y1: entryPt[1],
+        x2: nearCentre[0],
+        y2: nearCentre[1],
+        stroke: SLOT_COLORS[slot],
+        'stroke-width': 20,
+        opacity: 0.35,
+        'stroke-linecap': 'round',
+      }),
+    )
+    // Home column square backgrounds on top of the strip
+    const homeCols = geo.homeCol[slot]
+    for (const [hx, hy] of homeCols) {
+      svg.appendChild(
+        svgEl('rect', {
+          x: hx - 10,
+          y: hy - 10,
+          width: 20,
+          height: 20,
+          fill: '#fff',
+          stroke: '#bbb',
+          'stroke-width': 0.5,
+          rx: 2,
+          opacity: 0.6,
+        }),
+      )
+    }
+  }
+
+  // Yard corner areas (circles near each vertex)
+  for (let slot = 0; slot < 3; slot++) {
+    const vertex = vertices[slot]
+    const yardCentre = lerp2(vertex, geo.centre as [number, number], 0.18)
+    svg.appendChild(
+      svgEl('circle', {
+        cx: yardCentre[0],
+        cy: yardCentre[1],
+        r: 34,
+        fill: SLOT_COLORS[slot],
+        opacity: 0.25,
+        stroke: SLOT_COLORS[slot],
+        'stroke-width': 2,
+      }),
+    )
+    // 4 small yard slots
+    for (const [yx, yy] of geo.yard[slot]) {
+      svg.appendChild(
+        svgEl('circle', {
+          cx: yx,
+          cy: yy,
+          r: 10,
+          fill: '#fff',
+          stroke: SLOT_COLORS[slot],
+          'stroke-width': 1.5,
+          opacity: 0.6,
+        }),
+      )
+    }
+  }
+
+  // Shared centre finish area
+  svg.appendChild(
+    svgEl('circle', {
+      cx,
+      cy,
+      r: 22,
+      fill: '#888',
+      opacity: 0.5,
+    }),
+  )
+
+  // Start square highlights on the track
+  for (let slot = 0; slot < 3; slot++) {
+    const [sx, sy] = track[slot * 13]
+    svg.appendChild(
+      svgEl('rect', {
+        x: sx - 10,
+        y: sy - 10,
+        width: 20,
+        height: 20,
+        fill: SLOT_COLORS[slot],
+        opacity: 0.5,
+        rx: 3,
+      }),
+    )
+  }
+
+  return svg
+}
+
+// ---------------------------------------------------------------------------
+// Board SVG builder dispatcher
+// ---------------------------------------------------------------------------
+
+function buildBoardSVG(
+  playerCount: number,
+  geo: BoardGeometry,
+  activeSlots: readonly number[],
+): SVGSVGElement {
+  if (playerCount === 3) {
+    return build3LegBoardSVG(geo)
+  }
+  return build4QuadBoardSVG(activeSlots)
+}
+
+// ---------------------------------------------------------------------------
+// Pawn coordinate lookup
+// ---------------------------------------------------------------------------
+
+function pawnCoords(
+  pawn: Pawn,
+  geo: BoardGeometry,
+  quadrantSlots: readonly number[],
+): [number, number] {
+  const slot = quadrantSlots[pawn.player]
+  const { pos } = pawn
   if (pos.zone === 'yard') {
-    const [col, row] = YARD_COORDS[player][slot]
-    return cellCentre(col, row)
+    return geo.yard[slot][pawn.slot] as [number, number]
   }
   if (pos.zone === 'track') {
-    const [col, row] = MAIN_TRACK[pos.index]
-    return cellCentre(col, row)
+    return geo.mainTrack[pos.index] as [number, number]
   }
   if (pos.zone === 'home') {
-    const [col, row] = HOME_COL_COORDS[player][pos.index]
-    return cellCentre(col, row)
+    return geo.homeCol[slot][pos.index] as [number, number]
   }
-  // finished — render in centre cell
-  return cellCentre(7, 7)
+  // finished
+  return geo.centre
 }
 
 // ---------------------------------------------------------------------------
@@ -446,7 +803,7 @@ const CSS = `
 }
 `
 
-// Unicode die faces ⚀–⚅ (code points U+2680..U+2685)
+// Unicode die faces ⚀–⚅ (U+2680..U+2685)
 const DIE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
 function rollD6(): number {
@@ -467,6 +824,7 @@ const game: GameModule = {
 
     // State
     let state: GameState = initialState(ctx.players.length as 2 | 3 | 4)
+    let geo: BoardGeometry = getGeometry(state.playerCount)
 
     // DOM skeleton
     const wrapper = document.createElement('div')
@@ -474,10 +832,11 @@ const game: GameModule = {
 
     const boardWrap = document.createElement('div')
     boardWrap.className = 'ludo-board-wrap'
-    const boardSVG = buildBoardSVG()
+
+    let boardSVG: SVGSVGElement = buildBoardSVG(state.playerCount, geo, state.quadrantSlots)
     boardWrap.appendChild(boardSVG)
 
-    const pawnGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    let pawnGroup = document.createElementNS(NS, 'g')
     boardSVG.appendChild(pawnGroup)
 
     const sidebar = document.createElement('div')
@@ -530,27 +889,34 @@ const game: GameModule = {
 
     // ---- Helpers ----
 
+    function slotName(slot: number): string {
+      return SLOT_NAMES[slot] ?? `Slot ${slot}`
+    }
+
     function playerName(p: number): string {
-      return ctx.players[p] ?? PLAYER_NAMES[p] ?? `Player ${p + 1}`
+      return ctx.players[p] ?? SLOT_NAMES[state.quadrantSlots[p]] ?? `Player ${p + 1}`
+    }
+
+    function playerColor(p: number): string {
+      return SLOT_COLORS[state.quadrantSlots[p]]
     }
 
     // ---- Animation helpers ----
 
-    // Whether an animation is currently in progress (blocks input).
     let animating = false
 
     /**
      * Compute the list of SVG [cx, cy] positions a pawn travels through
      * during a move, one entry per step (not counting the start position).
-     * Used to drive the hop animation.
      */
     function moveWaypoints(pawn: Pawn, move: Move, dice: number): [number, number][] {
       const waypoints: [number, number][] = []
+      const slot = state.quadrantSlots[pawn.player]
 
       if (move.kind === 'release') {
         // Single hop: yard → start square
-        const startTrack = STARTS[pawn.player]
-        waypoints.push(cellCentre(...MAIN_TRACK[startTrack]))
+        const startTrack = state.starts[pawn.player]
+        waypoints.push(geo.mainTrack[startTrack] as [number, number])
         return waypoints
       }
 
@@ -561,33 +927,30 @@ const game: GameModule = {
         const startIdx = pos.index
         for (let step = 1; step <= dice; step++) {
           const homeIdx = startIdx + step
-          if (homeIdx >= HOME_COL_COORDS[pawn.player].length) {
-            // Finished — render in centre cell
-            waypoints.push(cellCentre(7, 7))
+          if (homeIdx >= geo.homeCol[slot].length) {
+            waypoints.push(geo.centre)
             break
           }
-          const [col, row] = HOME_COL_COORDS[pawn.player][homeIdx]
-          waypoints.push(cellCentre(col, row))
+          waypoints.push(geo.homeCol[slot][homeIdx] as [number, number])
         }
         return waypoints
       }
 
       if (pos.zone === 'track') {
-        const stepsLeft = stepsToHomeEntry(pawn.player, pos.index)
+        const stepsLeft = stepsToHomeEntry(pawn.player, pos.index, state)
         for (let step = 1; step <= dice; step++) {
           if (step < stepsLeft) {
             // Still on main track
-            const trackIdx = (pos.index + step) % 52
-            waypoints.push(cellCentre(...MAIN_TRACK[trackIdx]))
+            const trackIdx = (pos.index + step) % state.trackLength
+            waypoints.push(geo.mainTrack[trackIdx] as [number, number])
           } else {
             // Entering home column
             const homeIdx = step - stepsLeft
-            if (homeIdx >= HOME_COL_COORDS[pawn.player].length) {
-              waypoints.push(cellCentre(7, 7))
+            if (homeIdx >= geo.homeCol[slot].length) {
+              waypoints.push(geo.centre)
               break
             }
-            const [col, row] = HOME_COL_COORDS[pawn.player][homeIdx]
-            waypoints.push(cellCentre(col, row))
+            waypoints.push(geo.homeCol[slot][homeIdx] as [number, number])
           }
         }
         return waypoints
@@ -597,11 +960,7 @@ const game: GameModule = {
     }
 
     /**
-     * Animate a pawn hopping through `waypoints` (~80ms per hop) in SVG-space,
-     * then call `onDone`.
-     *
-     * We create a temporary SVG circle element in pawnGroup, animate it via
-     * requestAnimationFrame + CSS transitions, then remove it when done.
+     * Animate a pawn hopping through waypoints (~80ms per hop), then call onDone.
      */
     function animatePawnHop(
       startCx: number,
@@ -615,14 +974,10 @@ const game: GameModule = {
         return
       }
 
-      const NS = 'http://www.w3.org/2000/svg'
-
-      // The SVG viewBox is fixed (SVG_W × SVG_H) but rendered at a smaller size.
-      // We animate cx/cy attributes directly using requestAnimationFrame.
       const circle = document.createElementNS(NS, 'circle')
       circle.setAttribute('cx', String(startCx))
       circle.setAttribute('cy', String(startCy))
-      circle.setAttribute('r', String(CELL * 0.38))
+      circle.setAttribute('r', String(geo.cell * 0.38))
       circle.setAttribute('fill', color)
       circle.setAttribute('stroke', '#fff')
       circle.setAttribute('stroke-width', '2')
@@ -641,7 +996,6 @@ const game: GameModule = {
         const [tx, ty] = waypoints[hopIndex]
         hopIndex++
 
-        // Animate by stepping cx/cy attributes via rAF over HOP_MS
         const fromX = Number(circle.getAttribute('cx'))
         const fromY = Number(circle.getAttribute('cy'))
         const dx = tx - fromX
@@ -675,11 +1029,10 @@ const game: GameModule = {
       color: string,
       onDone: () => void,
     ): void {
-      const NS = 'http://www.w3.org/2000/svg'
       const circle = document.createElementNS(NS, 'circle')
       circle.setAttribute('cx', String(fromCx))
       circle.setAttribute('cy', String(fromCy))
-      circle.setAttribute('r', String(CELL * 0.35))
+      circle.setAttribute('r', String(geo.cell * 0.35))
       circle.setAttribute('fill', color)
       circle.setAttribute('stroke', '#333')
       circle.setAttribute('stroke-width', '1.5')
@@ -693,7 +1046,6 @@ const game: GameModule = {
 
       function tick(now: number): void {
         const t = Math.min(1, (now - startTime) / DURATION)
-        // ease-out: t => 1 - (1 - t)^2
         const eased = 1 - (1 - t) * (1 - t)
         circle.setAttribute('cx', String(fromCx + dx * eased))
         circle.setAttribute('cy', String(fromCy + dy * eased))
@@ -717,10 +1069,12 @@ const game: GameModule = {
 
         const dot = document.createElement('div')
         dot.className = 'ludo-player-dot'
-        dot.style.background = PLAYER_COLORS[p]
+        dot.style.background = playerColor(p)
 
         row.appendChild(dot)
-        row.appendChild(document.createTextNode(`${playerName(p)} (${PLAYER_NAMES[p]})`))
+        row.appendChild(
+          document.createTextNode(`${playerName(p)} (${slotName(state.quadrantSlots[p])})`),
+        )
         playersEl.appendChild(row)
       }
     }
@@ -749,12 +1103,12 @@ const game: GameModule = {
 
       const moves = state.dice !== null ? legalMoves(state) : []
       const movableSlots = new Set(moves.map((m) => `${state.turn},${m.pawnSlot}`))
-      const NS = 'http://www.w3.org/2000/svg'
 
       for (const pawn of state.pawns) {
-        const [cx, cy] = pawnCoords(pawn)
+        const [cx, cy] = pawnCoords(pawn, geo, state.quadrantSlots)
         const key = `${pawn.player},${pawn.slot}`
         const isSelectable = w === null && movableSlots.has(key)
+        const color = playerColor(pawn.player)
 
         const g = document.createElementNS(NS, 'g')
         g.setAttribute('class', `ludo-pawn${isSelectable ? ' selectable' : ''}`)
@@ -762,8 +1116,8 @@ const game: GameModule = {
         const circle = document.createElementNS(NS, 'circle')
         circle.setAttribute('cx', String(cx))
         circle.setAttribute('cy', String(cy))
-        circle.setAttribute('r', String(CELL * 0.35))
-        circle.setAttribute('fill', PLAYER_COLORS[pawn.player])
+        circle.setAttribute('r', String(geo.cell * 0.35))
+        circle.setAttribute('fill', color)
         circle.setAttribute('stroke', '#333')
         circle.setAttribute('stroke-width', '1.5')
 
@@ -803,7 +1157,7 @@ const game: GameModule = {
 
       const rolled = rollD6()
 
-      // Three consecutive 6s: show the roll, then forfeit turn automatically.
+      // Three consecutive 6s: show the roll then forfeit turn.
       if (rolled === 6 && state.consecutiveSixes >= 2) {
         state = { ...state, dice: rolled }
         render()
@@ -836,29 +1190,27 @@ const game: GameModule = {
       const move: Move | undefined = legalMoves(state).find((m) => m.pawnSlot === slot)
       if (!move) return
 
-      // Find the pawn being moved
       const movingPawn = state.pawns.find((p) => p.player === player && p.slot === slot)
       if (!movingPawn) return
 
       const dice = state.dice
       const waypoints = moveWaypoints(movingPawn, move, dice)
-      const [startCx, startCy] = pawnCoords(movingPawn)
-      const color = PLAYER_COLORS[player]
+      const [startCx, startCy] = pawnCoords(movingPawn, geo, state.quadrantSlots)
+      const color = playerColor(player)
 
-      // Detect capture: find any lone opponent that would be captured (only on track advances)
+      // Detect capture: find lone opponent at the final waypoint.
       let capturedPawn: Pawn | null = null
       let capturedYardCoord: [number, number] | null = null
       if (move.kind === 'advance' && movingPawn.pos.zone === 'track' && waypoints.length > 0) {
-        // The final waypoint is where the pawn lands. Find any lone opponent there.
         const finalWaypoint = waypoints[waypoints.length - 1]
         for (const opponent of state.pawns) {
           if (opponent.player === player) continue
           if (opponent.pos.zone !== 'track') continue
-          const [opCx, opCy] = pawnCoords(opponent)
+          const [opCx, opCy] = pawnCoords(opponent, geo, state.quadrantSlots)
           if (Math.abs(opCx - finalWaypoint[0]) < 1 && Math.abs(opCy - finalWaypoint[1]) < 1) {
             capturedPawn = opponent
-            const yardSlot = YARD_COORDS[opponent.player][opponent.slot]
-            capturedYardCoord = cellCentre(yardSlot[0], yardSlot[1])
+            const opSlot = state.quadrantSlots[opponent.player]
+            capturedYardCoord = geo.yard[opSlot][opponent.slot] as [number, number]
             break
           }
         }
@@ -870,11 +1222,8 @@ const game: GameModule = {
       animatePawnHop(startCx, startCy, waypoints, color, () => {
         if (capturedPawn && capturedYardCoord) {
           const finalWaypoint = waypoints[waypoints.length - 1]
-          const capturedColor = PLAYER_COLORS[capturedPawn.player]
-          // Apply the move first so the board state is correct, then animate capture
+          const capturedColor = playerColor(capturedPawn.player)
           state = applyMove(state, move)
-          // Render without the animation marker (pawnGroup will be redrawn)
-          // But we still need to show the capture animation on top
           render()
           animateCapturedPawn(
             finalWaypoint[0],
@@ -896,7 +1245,16 @@ const game: GameModule = {
     }
 
     function startNewGame(): void {
+      // Rebuild board SVG on new game in case player count changes between sessions.
       state = initialState(ctx.players.length as 2 | 3 | 4)
+      geo = getGeometry(state.playerCount)
+
+      const oldSVG = boardSVG
+      boardSVG = buildBoardSVG(state.playerCount, geo, state.quadrantSlots)
+      pawnGroup = document.createElementNS(NS, 'g')
+      boardSVG.appendChild(pawnGroup)
+      boardWrap.replaceChild(boardSVG, oldSVG)
+
       render()
     }
 
