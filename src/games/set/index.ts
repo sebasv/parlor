@@ -270,7 +270,7 @@ const game: GameModule = {
       }
 
       .set-card {
-        background: #f5f5f5;
+        background: #fff;
         border: 2.5px solid #c8c8c8;
         border-radius: 10px;
         padding: 0.4rem 0.2rem;
@@ -283,22 +283,23 @@ const game: GameModule = {
         min-height: 80px;
         aspect-ratio: 0.65;
         box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+        /* Keep full opacity even when disabled — shapes must always read clearly */
+        opacity: 1;
+      }
+
+      .set-card:disabled {
+        /* Override browser default which dims disabled buttons */
+        opacity: 1;
+        cursor: default;
       }
 
       .set-card:hover:not(:disabled) {
-        background: #fff;
         border-color: #999;
         box-shadow: 0 2px 8px rgba(0,0,0,0.22);
       }
 
-      .set-card:disabled {
-        cursor: default;
-      }
-
       .set-card.set-card--selected {
-        border-color: var(--accent);
         background: #fff;
-        box-shadow: 0 0 0 3px var(--accent), 0 2px 8px rgba(0,0,0,0.2);
       }
 
       .set-card-symbols {
@@ -323,20 +324,38 @@ const game: GameModule = {
         max-width: min(98vw, 720px);
       }
 
+      @keyframes set-pulse {
+        0%, 100% { box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        50% { box-shadow: 0 2px 14px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,255,255,0.35); }
+      }
+
       .set-claim-btn {
         flex: 1 1 120px;
         max-width: 160px;
         min-height: 56px;
         font-size: 1rem;
         font-weight: 700;
-        border: none;
+        border: 3px solid transparent;
         border-radius: var(--radius);
         color: #fff;
         cursor: pointer;
-        transition: opacity 0.12s, box-shadow 0.12s;
+        transition: opacity 0.12s, box-shadow 0.12s, transform 0.12s, border-color 0.12s;
         text-shadow: 0 1px 2px rgba(0,0,0,0.35);
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         letter-spacing: 0.01em;
+      }
+
+      /* Pulse all buttons in idle state to draw attention */
+      .set-claim-btn.set-claim-btn--idle {
+        animation: set-pulse 1.6s ease-in-out infinite;
+      }
+
+      /* Active claimer: thick white border + slight scale-up */
+      .set-claim-btn.set-claim-btn--active {
+        border-color: #fff;
+        transform: scale(1.08);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 3px rgba(255,255,255,0.6);
+        animation: none;
       }
 
       .set-claim-btn::after {
@@ -356,10 +375,18 @@ const game: GameModule = {
         opacity: 0.45;
         cursor: not-allowed;
         box-shadow: none;
+        animation: none;
       }
 
       .set-claim-btn:disabled::after {
         display: none;
+      }
+
+      /* Grid frame lights up in the active player's colour during a claim */
+      .set-grid.set-grid--claiming {
+        border-radius: 12px;
+        outline: 4px solid var(--set-claimer-color, transparent);
+        outline-offset: 4px;
       }
 
       .set-selection-controls {
@@ -631,10 +658,31 @@ const game: GameModule = {
 
     function renderGrid() {
       gridEl.innerHTML = ''
+
+      // Grid frame: light up with the active player's colour during a claim
+      if (claimingPlayer !== null) {
+        const playerColor = PLAYER_COLORS[claimingPlayer] ?? '#aaa'
+        gridEl.classList.add('set-grid--claiming')
+        gridEl.style.setProperty('--set-claimer-color', playerColor)
+      } else {
+        gridEl.classList.remove('set-grid--claiming')
+        gridEl.style.removeProperty('--set-claimer-color')
+      }
+
+      // Use active player's colour for the selection ring on cards
+      const selectionColor =
+        claimingPlayer !== null ? (PLAYER_COLORS[claimingPlayer] ?? '#aaa') : null
+
       for (const card of tableCards) {
         const el = renderCard(card)
         el.disabled = claimingPlayer === null
-        if (selectedIds.has(card.id)) el.classList.add('set-card--selected')
+        if (selectedIds.has(card.id)) {
+          el.classList.add('set-card--selected')
+          if (selectionColor !== null) {
+            el.style.borderColor = selectionColor
+            el.style.boxShadow = `0 0 0 3px ${selectionColor}, 0 2px 8px rgba(0,0,0,0.2)`
+          }
+        }
         el.addEventListener('click', () => handleCardClick(card))
         gridEl.appendChild(el)
       }
@@ -642,9 +690,13 @@ const game: GameModule = {
 
     function updateClaimButtons() {
       claimBtns.forEach((btn, i) => {
-        btn.disabled = claimingPlayer !== null || gameOver
-        // dim non-active players during claim
-        btn.style.opacity = claimingPlayer !== null && claimingPlayer !== i ? '0.45' : '1'
+        btn.disabled = (claimingPlayer !== null && claimingPlayer !== i) || gameOver
+        btn.classList.remove('set-claim-btn--idle', 'set-claim-btn--active')
+        if (claimingPlayer === null && !gameOver) {
+          btn.classList.add('set-claim-btn--idle')
+        } else if (claimingPlayer === i) {
+          btn.classList.add('set-claim-btn--active')
+        }
       })
     }
 
