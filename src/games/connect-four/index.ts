@@ -140,6 +140,9 @@ const CSS = `
   border-radius: 12px;
   padding: 8px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  /* Clip the drop animation to the board area */
+  position: relative;
+  overflow: hidden;
 }
 
 .cf-grid {
@@ -222,6 +225,16 @@ const CSS = `
   font-size: 0.95rem;
 }
 .cf-btn:hover { border-color: var(--accent, #6cb1ff); }
+
+/* Animated disc that drops from top to final cell */
+.cf-drop-disc {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  /* Hardware-accelerated slide with ease-in to mimic gravity */
+  transition: transform 250ms ease-in;
+  z-index: 10;
+}
 `
 
 // ---------------------------------------------------------------------------
@@ -354,26 +367,88 @@ const game: GameModule = {
     }
 
     // ---------------------------------------------------------------------------
+    // Drop animation
+    // ---------------------------------------------------------------------------
+
+    // Whether an animation is currently running — blocks input during the drop.
+    let animating = false
+
+    /**
+     * Animate a disc dropping from the top of `col` to `landRow`, then call
+     * `onDone` when the transition finishes.
+     *
+     * The animated element is a temporary absolutely-positioned div placed over
+     * the board. On transitionend we remove it and commit the final state.
+     */
+    function animateDrop(col: number, landRow: number, player: 1 | 2, onDone: () => void): void {
+      const CELL_SIZE = cellEls[0][0].getBoundingClientRect().width
+      const GAP = 6
+      const PADDING = 8
+
+      // Top-left of the first cell in the column (row=0)
+      const topCell = cellEls[0][col]
+      const wrapRect = boardWrap.getBoundingClientRect()
+      const cellRect = topCell.getBoundingClientRect()
+
+      // Position relative to boardWrap (which has position:relative)
+      const startX = cellRect.left - wrapRect.left
+      const startY = -(CELL_SIZE + PADDING) // just above the board
+
+      // Destination y inside the board
+      const destY = PADDING + landRow * (CELL_SIZE + GAP)
+
+      const disc = document.createElement('div')
+      disc.className = 'cf-drop-disc'
+      disc.style.width = `${CELL_SIZE}px`
+      disc.style.height = `${CELL_SIZE}px`
+      disc.style.background = player === 1 ? 'var(--cf-p1)' : 'var(--cf-p2)'
+      disc.style.left = `${startX}px`
+      disc.style.top = `${startY}px`
+      boardWrap.appendChild(disc)
+
+      // Force layout so the initial position is painted before the transition starts
+      disc.getBoundingClientRect()
+
+      const deltaY = destY - startY
+      disc.style.transform = `translateY(${deltaY}px)`
+
+      disc.addEventListener(
+        'transitionend',
+        () => {
+          disc.remove()
+          onDone()
+        },
+        { once: true },
+      )
+    }
+
+    // ---------------------------------------------------------------------------
     // Game logic
     // ---------------------------------------------------------------------------
 
     function handleColClick(col: number): void {
-      if (gameOver) return
+      if (gameOver || animating) return
 
       const result = drop(board, col, currentPlayer)
       if (!result) return // column full
 
-      board = result.board
+      animating = true
+      setColBtnsDisabled(true)
 
-      const winCells = checkWin(board, currentPlayer)
-      if (winCells || isBoardFull(board)) {
-        gameOver = true
-        render(winCells)
-        return
-      }
+      animateDrop(col, result.row, currentPlayer, () => {
+        animating = false
+        board = result.board
 
-      currentPlayer = currentPlayer === 1 ? 2 : 1
-      render()
+        const winCells = checkWin(board, currentPlayer)
+        if (winCells || isBoardFull(board)) {
+          gameOver = true
+          render(winCells)
+          return
+        }
+
+        currentPlayer = currentPlayer === 1 ? 2 : 1
+        render()
+      })
     }
 
     function startNewGame(): void {

@@ -797,10 +797,105 @@ const game: GameModule = {
       renderBoard()
     }
 
+    // ---- Animation helpers ----
+
+    // Whether a checker animation is in progress — blocks input.
+    let animating = false
+
+    /**
+     * Animate a checker sliding from (fromCx, fromCy) to (toCx, toCy) in SVG
+     * space over ~200ms, then call onDone.
+     * The animated circle is rendered in checkerGroup on top of existing checkers.
+     */
+    function animateChecker(
+      fromCx: number,
+      fromCy: number,
+      toCx: number,
+      toCy: number,
+      player: 0 | 1,
+      onDone: () => void,
+    ): void {
+      const DURATION = 200
+      const circle = svgEl('circle', {
+        cx: fromCx,
+        cy: fromCy,
+        r: CHECKER_R,
+        fill: CHECKER_FILL[player],
+        stroke: CHECKER_STROKE[player],
+        'stroke-width': '1.5',
+        'pointer-events': 'none',
+      }) as SVGCircleElement
+      checkerGroup.appendChild(circle)
+
+      const dx = toCx - fromCx
+      const dy = toCy - fromCy
+      const startTime = performance.now()
+
+      function tick(now: number): void {
+        const t = Math.min(1, (now - startTime) / DURATION)
+        // ease-in-out: smooth start and end
+        const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
+        circle.setAttribute('cx', String(fromCx + dx * eased))
+        circle.setAttribute('cy', String(fromCy + dy * eased))
+        if (t < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          circle.remove()
+          onDone()
+        }
+      }
+      requestAnimationFrame(tick)
+    }
+
+    /**
+     * Derive the SVG centre of the top checker on a given point (the one that
+     * would be picked up for a move).
+     */
+    function topCheckerCoord(point: number): [number, number] {
+      const slot = state.points[point]
+      const cx = pointX(point)
+      // The top checker is the last-rendered one (index = count - 1, capped at maxVisible - 1)
+      const stackIndex = slot ? Math.min(slot.count - 1, 4) : 0
+      const cy = checkerCY(point, stackIndex)
+      return [cx, cy]
+    }
+
+    /**
+     * Return the SVG centre of the destination for an animated checker.
+     * For bearoff, this is the bear-off zone centre for that player.
+     * For normal/reenter moves, this is the top of the destination stack.
+     */
+    function destCheckerCoord(move: ReturnType<typeof legalMoves>[number]): [number, number] {
+      if (move.kind === 'bearoff') {
+        const player = state.turn
+        const isTop = player === 1
+        return [BEAROFF_X, isTop ? TOP_Y + 40 : BOT_Y - 40]
+      }
+      if (move.kind === 'normal' || move.kind === 'reenter') {
+        const dest = state.points[move.toPoint]
+        const cx = pointX(move.toPoint)
+        // After the move the checker will be on top of whatever is there now
+        const stackIndex = dest ? dest.count : 0
+        const cy = checkerCY(move.toPoint, stackIndex)
+        return [cx, cy]
+      }
+      return [0, 0]
+    }
+
+    /**
+     * Start coordinate for bar checkers (the top checker for current player).
+     */
+    function barCheckerCoord(): [number, number] {
+      const player = state.turn
+      const isTop = player === 1
+      // Match the rendering logic in renderBoard
+      return [BAR_X, isTop ? MID_Y - 20 : MID_Y + 20]
+    }
+
     // ---- Interaction ----
 
     function handlePointClick(point: number) {
-      if (gameOver || !state.rolled) return
+      if (gameOver || !state.rolled || animating) return
 
       // Is this a destination for the selected checker?
       const destMoves = movesFromSelected.filter(
@@ -808,11 +903,19 @@ const game: GameModule = {
       )
 
       if (destMoves.length > 0) {
-        // Execute the first matching move (there may be multiple dice that reach this point;
-        // just pick the first — in practice any is equivalent for the destination).
-        state = applyMove(state, destMoves[0])
+        const move = destMoves[0]
+        const [fromCx, fromCy] = selectedIsBar
+          ? barCheckerCoord()
+          : topCheckerCoord(selectedPoint ?? point)
+        const [toCx, toCy] = destCheckerCoord(move)
+
+        animating = true
         clearSelection()
-        render()
+        animateChecker(fromCx, fromCy, toCx, toCy, state.turn, () => {
+          state = applyMove(state, move)
+          animating = false
+          render()
+        })
         return
       }
 
@@ -834,7 +937,7 @@ const game: GameModule = {
     }
 
     function handleBarClick() {
-      if (gameOver || !state.rolled) return
+      if (gameOver || !state.rolled || animating) return
       if (!mustReenterFromBar(state, state.turn)) return
 
       selectedIsBar = true
@@ -844,14 +947,21 @@ const game: GameModule = {
     }
 
     function handleBearOffClick() {
-      if (gameOver || !state.rolled) return
+      if (gameOver || !state.rolled || animating) return
       const bearoffMoves = movesFromSelected.filter((m) => m.kind === 'bearoff')
       if (bearoffMoves.length === 0) return
 
-      // Execute the first available bearoff move.
-      state = applyMove(state, bearoffMoves[0])
+      const move = bearoffMoves[0]
+      const [fromCx, fromCy] = topCheckerCoord(move.fromPoint)
+      const [toCx, toCy] = destCheckerCoord(move)
+
+      animating = true
       clearSelection()
-      render()
+      animateChecker(fromCx, fromCy, toCx, toCy, state.turn, () => {
+        state = applyMove(state, move)
+        animating = false
+        render()
+      })
     }
 
     function clearSelection() {

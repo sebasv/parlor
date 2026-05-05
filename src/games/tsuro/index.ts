@@ -11,8 +11,8 @@ import {
   placeTile,
   rotateCandidateTile,
 } from './rules'
-import type { Port } from './tiles'
-import { oppositePort, portDelta, portPosition, TILE_SIZE, tilePathD } from './tiles'
+import type { Port, Tile } from './tiles'
+import { exitPort, oppositePort, portDelta, portPosition, TILE_SIZE, tilePathD } from './tiles'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -507,11 +507,128 @@ const game: GameModule = {
     }
 
     // -----------------------------------------------------------------------
+    // Animation helpers
+    // -----------------------------------------------------------------------
+
+    // Whether an animation is in progress — blocks input.
+    let animating = false
+
+    /**
+     * Compute the list of global SVG waypoints a pawn travels through after a
+     * tile is placed, stopping at each port-midpoint along the path chain.
+     * Returns an array of [cx, cy] positions in SVG space.
+     *
+     * We simulate the path-following logic from advancePawn in rules.ts but
+     * collect every intermediate port position.
+     */
+    function computePawnWaypoints(
+      startPos: { col: number; row: number; port: Port },
+      newBoard: (Tile | null)[][],
+    ): [number, number][] {
+      const waypoints: [number, number][] = []
+      let { col, row, port } = startPos
+
+      while (true) {
+        const [dc, dr] = portDelta(port)
+        const nextCol = col + dc
+        const nextRow = row + dr
+
+        if (nextCol < 0 || nextCol >= BOARD_COLS || nextRow < 0 || nextRow >= BOARD_ROWS) {
+          // Pawn falls off — final position is the exit port of the current tile
+          waypoints.push(portCoord(col, row, port))
+          break
+        }
+
+        const nextTile = newBoard[nextRow][nextCol]
+        if (nextTile === null) {
+          // Pawn stops here — record the current exit port edge as destination
+          waypoints.push(portCoord(col, row, port))
+          break
+        }
+
+        // Enter the next tile; record the entry port position and exit port position
+        const entryPort = oppositePort(port)
+        const exitP = exitPort(nextTile, entryPort)
+
+        // Waypoint: entry edge of new tile
+        waypoints.push(portCoord(nextCol, nextRow, entryPort))
+        // Waypoint: exit edge of new tile
+        waypoints.push(portCoord(nextCol, nextRow, exitP))
+
+        col = nextCol
+        row = nextRow
+        port = exitP
+      }
+
+      return waypoints
+    }
+
+    /**
+     * Animate an SVG circle through a list of waypoints, ~200ms per segment,
+     * then call onDone.
+     */
+    function animatePawnAlongPath(
+      startCx: number,
+      startCy: number,
+      waypoints: [number, number][],
+      color: string,
+      onDone: () => void,
+    ): void {
+      if (waypoints.length === 0) {
+        onDone()
+        return
+      }
+
+      const circle = document.createElementNS(SVG_NS, 'circle')
+      circle.setAttribute('cx', String(startCx))
+      circle.setAttribute('cy', String(startCy))
+      circle.setAttribute('r', '9')
+      circle.setAttribute('fill', color)
+      circle.setAttribute('stroke', '#0f1115')
+      circle.setAttribute('stroke-width', '2')
+      circle.setAttribute('pointer-events', 'none')
+      pawnGroup.appendChild(circle)
+
+      const SEG_MS = 200
+      let idx = 0
+
+      function nextSegment(): void {
+        if (idx >= waypoints.length) {
+          circle.remove()
+          onDone()
+          return
+        }
+        const [tx, ty] = waypoints[idx]
+        idx++
+        const fromX = Number(circle.getAttribute('cx'))
+        const fromY = Number(circle.getAttribute('cy'))
+        const dx = tx - fromX
+        const dy = ty - fromY
+        const startTime = performance.now()
+
+        function tick(now: number): void {
+          const t = Math.min(1, (now - startTime) / SEG_MS)
+          const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
+          circle.setAttribute('cx', String(fromX + dx * eased))
+          circle.setAttribute('cy', String(fromY + dy * eased))
+          if (t < 1) {
+            requestAnimationFrame(tick)
+          } else {
+            nextSegment()
+          }
+        }
+        requestAnimationFrame(tick)
+      }
+
+      nextSegment()
+    }
+
+    // -----------------------------------------------------------------------
     // Event handlers
     // -----------------------------------------------------------------------
 
     function handlePlace(): void {
-      if (state.phase !== 'placing') return
+      if (state.phase !== 'placing' || animating) return
       const currentPawn = state.pawns[state.currentPlayerIndex]
       if (currentPawn.status !== 'active') return
 
@@ -529,8 +646,85 @@ const game: GameModule = {
       }
 
       const rotatedTile = getRotatedCandidate(state)
-      state = placeTile(state, slot, rotatedTile)
-      render()
+
+      // Build the new board state (without advancing pawns yet) to derive waypoints
+      const boardWithNewTile = state.board.map((r) => r.slice())
+      boardWithNewTile[slot.row][slot.col] = rotatedTile
+
+      // Compute waypoints for each active pawn that faces the newly placed tile
+      type AnimTask = {
+        playerIndex: number
+        startCx: number
+        startCy: number
+        waypoints: [number, number][]
+        color: string
+      }
+      const tasks: AnimTask[] = []
+
+      for (const pawn of state.pawns) {
+        if (pawn.status !== 'active') continue
+        const [dc, dr] = portDelta(pawn.pos.port)
+        const facingCol = pawn.pos.col + dc
+        const facingRow = pawn.pos.row + dr
+        if (facingCol !== slot.col || facingRow !== slot.row) continue
+
+        let startCx: number
+        let startCy: number
+        if (state.board[pawn.pos.row]?.[pawn.pos.col]) {
+          ;[startCx, startCy] = portCoord(pawn.pos.col, pawn.pos.row, pawn.pos.port)
+        } else {
+          ;[startCx, startCy] = pawnStartCoord(pawn.pos.port, pawn.pos.col, pawn.pos.row)
+        }
+
+        const waypoints = computePawnWaypoints(
+          { col: pawn.pos.col, row: pawn.pos.row, port: pawn.pos.port },
+          boardWithNewTile,
+        )
+
+        if (waypoints.length > 0) {
+          tasks.push({
+            playerIndex: pawn.playerIndex,
+            startCx,
+            startCy,
+            waypoints,
+            color: PLAYER_COLORS[pawn.playerIndex],
+          })
+        }
+      }
+
+      if (tasks.length === 0) {
+        // No pawn touches this tile — place immediately without animation
+        state = placeTile(state, slot, rotatedTile)
+        render()
+        return
+      }
+
+      // Render the board with the new tile visible but pawns in their old positions
+      // before animating.
+      const preAnimState = placeTile(state, slot, rotatedTile)
+
+      animating = true
+      rotateBtn.disabled = true
+      placeBtn.disabled = true
+
+      // Render with tile placed but hide pawns that will animate (re-render without them)
+      // We commit to the new state, then animate the moving pawns on top.
+      state = preAnimState
+      renderBoard()
+      renderStatus()
+      renderCandidateTile()
+
+      // Run all tasks concurrently (each is an independent pawn)
+      let done = 0
+      for (const task of tasks) {
+        animatePawnAlongPath(task.startCx, task.startCy, task.waypoints, task.color, () => {
+          done++
+          if (done === tasks.length) {
+            animating = false
+            render()
+          }
+        })
+      }
     }
 
     function handleRotate(): void {
