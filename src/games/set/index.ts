@@ -331,7 +331,7 @@ const game: GameModule = {
       }
 
       .set-claim-btn:disabled {
-        opacity: 0.3;
+        opacity: 0.45;
         cursor: not-allowed;
       }
 
@@ -616,7 +616,7 @@ const game: GameModule = {
       claimBtns.forEach((btn, i) => {
         btn.disabled = claimingPlayer !== null || gameOver
         // dim non-active players during claim
-        btn.style.opacity = claimingPlayer !== null && claimingPlayer !== i ? '0.25' : '1'
+        btn.style.opacity = claimingPlayer !== null && claimingPlayer !== i ? '0.45' : '1'
       })
     }
 

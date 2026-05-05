@@ -210,10 +210,10 @@ const CSS = `
 }
 
 /* Edge border strips */
-.hex-edge-top    { fill: var(--hex-p0); opacity: 0.55; }
-.hex-edge-bottom { fill: var(--hex-p0); opacity: 0.55; }
-.hex-edge-left   { fill: var(--hex-p1); opacity: 0.55; }
-.hex-edge-right  { fill: var(--hex-p1); opacity: 0.55; }
+.hex-edge-top    { fill: var(--hex-p0); opacity: 0.75; }
+.hex-edge-bottom { fill: var(--hex-p0); opacity: 0.75; }
+.hex-edge-left   { fill: var(--hex-p1); opacity: 0.75; }
+.hex-edge-right  { fill: var(--hex-p1); opacity: 0.75; }
 
 /* Hex cells */
 .hex-cell {

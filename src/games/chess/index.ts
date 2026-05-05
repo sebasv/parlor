@@ -176,7 +176,7 @@ const game: GameModule = {
 
       .ch-history-num {
         color: var(--fg-dim);
-        opacity: 0.5;
+        opacity: 0.75;
       }
 
       .ch-history-move {
