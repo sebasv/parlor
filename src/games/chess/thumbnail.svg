@@ -1,0 +1,86 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chess thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+  <!-- Board: 6x6 portion centered -->
+  <g transform="translate(28,10)">
+    <!-- Board squares, 6 cols x 6 rows, 24px each -->
+    <rect x="0"   y="0"  width="24" height="24" fill="#2a2f38"/>
+    <rect x="24"  y="0"  width="24" height="24" fill="#3a4050"/>
+    <rect x="48"  y="0"  width="24" height="24" fill="#2a2f38"/>
+    <rect x="72"  y="0"  width="24" height="24" fill="#3a4050"/>
+    <rect x="96"  y="0"  width="24" height="24" fill="#2a2f38"/>
+    <rect x="120" y="0"  width="24" height="24" fill="#3a4050"/>
+
+    <rect x="0"   y="24" width="24" height="24" fill="#3a4050"/>
+    <rect x="24"  y="24" width="24" height="24" fill="#2a2f38"/>
+    <rect x="48"  y="24" width="24" height="24" fill="#3a4050"/>
+    <rect x="72"  y="24" width="24" height="24" fill="#2a2f38"/>
+    <rect x="96"  y="24" width="24" height="24" fill="#3a4050"/>
+    <rect x="120" y="24" width="24" height="24" fill="#2a2f38"/>
+
+    <rect x="0"   y="48" width="24" height="24" fill="#2a2f38"/>
+    <rect x="24"  y="48" width="24" height="24" fill="#3a4050"/>
+    <rect x="48"  y="48" width="24" height="24" fill="#2a2f38"/>
+    <rect x="72"  y="48" width="24" height="24" fill="#3a4050"/>
+    <rect x="96"  y="48" width="24" height="24" fill="#2a2f38"/>
+    <rect x="120" y="48" width="24" height="24" fill="#3a4050"/>
+
+    <rect x="0"   y="72" width="24" height="24" fill="#3a4050"/>
+    <rect x="24"  y="72" width="24" height="24" fill="#2a2f38"/>
+    <rect x="48"  y="72" width="24" height="24" fill="#3a4050"/>
+    <rect x="72"  y="72" width="24" height="24" fill="#2a2f38"/>
+    <rect x="96"  y="72" width="24" height="24" fill="#3a4050"/>
+    <rect x="120" y="72" width="24" height="24" fill="#2a2f38"/>
+
+    <rect x="0"   y="96" width="24" height="24" fill="#2a2f38"/>
+    <rect x="24"  y="96" width="24" height="24" fill="#3a4050"/>
+    <rect x="48"  y="96" width="24" height="24" fill="#2a2f38"/>
+    <rect x="72"  y="96" width="24" height="24" fill="#3a4050"/>
+    <rect x="96"  y="96" width="24" height="24" fill="#2a2f38"/>
+    <rect x="120" y="96" width="24" height="24" fill="#3a4050"/>
+
+    <!-- Board border -->
+    <rect x="0" y="0" width="144" height="120" fill="none" stroke="#3a4050" stroke-width="1.5"/>
+
+    <!-- Accent (blue) pieces -->
+    <!-- Rook at col0,row4 (x=0,y=96): notched rectangle -->
+    <g fill="#6cb1ff" transform="translate(12,108)">
+      <rect x="-6" y="-8" width="12" height="8" rx="1"/>
+      <rect x="-8" y="-12" width="4" height="5"/>
+      <rect x="-1" y="-12" width="4" height="5"/>
+      <rect x="4"  y="-12" width="4" height="5"/>
+      <rect x="-7" y="-2" width="14" height="3" rx="1"/>
+    </g>
+    <!-- Pawn at col2,row3 (x=48,y=72) -->
+    <g fill="#6cb1ff" transform="translate(60,84)">
+      <circle cx="0" cy="-8" r="5"/>
+      <rect x="-4" y="-3" width="8" height="5" rx="1"/>
+      <rect x="-6" y="2"  width="12" height="3" rx="1"/>
+    </g>
+    <!-- Bishop at col3,row1 (x=72,y=24) — attack arrow indicator -->
+    <g fill="#6cb1ff" transform="translate(84,36)">
+      <circle cx="0" cy="-9" r="4"/>
+      <rect x="-3" y="-5" width="6" height="6" rx="1"/>
+      <rect x="-5" y="1"  width="10" height="3" rx="1"/>
+      <circle cx="0" cy="-13" r="2" fill="#6cb1ff"/>
+    </g>
+
+    <!-- Warm (enemy) pieces -->
+    <!-- King at col5,row0 (x=120,y=0) -->
+    <g fill="#e8a14d" transform="translate(132,12)">
+      <rect x="-5" y="-10" width="10" height="12" rx="1"/>
+      <rect x="-7" y="2"   width="14" height="3" rx="1"/>
+      <rect x="-2" y="-14" width="4" height="6"/>
+      <rect x="-4" y="-12" width="8" height="2"/>
+    </g>
+    <!-- Pawn at col4,row2 (x=96,y=48) -->
+    <g fill="#e8a14d" transform="translate(108,60)">
+      <circle cx="0" cy="-8" r="5"/>
+      <rect x="-4" y="-3" width="8" height="5" rx="1"/>
+      <rect x="-6" y="2"  width="12" height="3" rx="1"/>
+    </g>
+
+    <!-- Attack arrow: bishop diagonally toward king -->
+    <line x1="90" y1="30" x2="124" y2="8" stroke="#6cb1ff" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.7"/>
+    <polygon points="124,8 116,10 120,16" fill="#6cb1ff" opacity="0.7"/>
+  </g>
+</svg>

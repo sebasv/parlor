@@ -1,0 +1,50 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Backgammon thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+  <!-- Board outline -->
+  <rect x="8" y="8" width="184" height="109" rx="3" fill="#2a2f38" stroke="#3a4050" stroke-width="1.5"/>
+  <!-- Centre bar -->
+  <rect x="96" y="8" width="8" height="109" fill="#1a1d24"/>
+
+  <!-- Top triangles (pointing down) -->
+  <!-- Left side: 3 triangles -->
+  <polygon points="8,8 36,8 22,58"   fill="#6cb1ff" opacity="0.85"/>
+  <polygon points="36,8 64,8 50,58"  fill="#e8a14d" opacity="0.85"/>
+  <polygon points="64,8 92,8 78,58"  fill="#6cb1ff" opacity="0.85"/>
+  <!-- Right side: 3 triangles -->
+  <polygon points="104,8 132,8 118,58" fill="#e8a14d" opacity="0.85"/>
+  <polygon points="132,8 160,8 146,58" fill="#6cb1ff" opacity="0.85"/>
+  <polygon points="160,8 188,8 174,58" fill="#e8a14d" opacity="0.85"/>
+
+  <!-- Bottom triangles (pointing up) -->
+  <polygon points="8,117 36,117 22,67"   fill="#e8a14d" opacity="0.85"/>
+  <polygon points="36,117 64,117 50,67"  fill="#6cb1ff" opacity="0.85"/>
+  <polygon points="64,117 92,117 78,67"  fill="#e8a14d" opacity="0.85"/>
+  <polygon points="104,117 132,117 118,67" fill="#6cb1ff" opacity="0.85"/>
+  <polygon points="132,117 160,117 146,67" fill="#e8a14d" opacity="0.85"/>
+  <polygon points="160,117 188,117 174,67" fill="#6cb1ff" opacity="0.85"/>
+
+  <!-- Checkers stacked on bottom-left point (accent) -->
+  <circle cx="22" cy="113" r="8" fill="#6cb1ff" stroke="#1a1d24" stroke-width="1"/>
+  <circle cx="22" cy="101" r="8" fill="#6cb1ff" stroke="#1a1d24" stroke-width="1"/>
+  <circle cx="22" cy="89"  r="8" fill="#6cb1ff" stroke="#1a1d24" stroke-width="1"/>
+
+  <!-- Checkers on bottom-right point (warm) -->
+  <circle cx="174" cy="113" r="8" fill="#e8a14d" stroke="#1a1d24" stroke-width="1"/>
+  <circle cx="174" cy="101" r="8" fill="#e8a14d" stroke="#1a1d24" stroke-width="1"/>
+
+  <!-- Checker on top accent point -->
+  <circle cx="118" cy="13" r="8" fill="#6cb1ff" stroke="#1a1d24" stroke-width="1"/>
+  <circle cx="118" cy="25" r="8" fill="#6cb1ff" stroke="#1a1d24" stroke-width="1"/>
+
+  <!-- Dice in centre bar area -->
+  <rect x="97.5" y="42" width="14" height="14" rx="2" fill="#f0f0f0" stroke="#9aa0a6" stroke-width="0.5"/>
+  <circle cx="101" cy="45.5" r="1.2" fill="#1a1d24"/>
+  <circle cx="108" cy="52.5" r="1.2" fill="#1a1d24"/>
+  <circle cx="104.5" cy="49" r="1.2" fill="#1a1d24"/>
+
+  <rect x="97.5" y="60" width="14" height="14" rx="2" fill="#f0f0f0" stroke="#9aa0a6" stroke-width="0.5"/>
+  <circle cx="101" cy="63.5" r="1.2" fill="#1a1d24"/>
+  <circle cx="108" cy="63.5" r="1.2" fill="#1a1d24"/>
+  <circle cx="101" cy="70.5" r="1.2" fill="#1a1d24"/>
+  <circle cx="108" cy="70.5" r="1.2" fill="#1a1d24"/>
+</svg>
