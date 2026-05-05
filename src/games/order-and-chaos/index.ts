@@ -136,6 +136,16 @@ function renderGame(
   const statusBar = el('div', { class: 'oc-status' })
   container.appendChild(statusBar)
 
+  // ── Player pills ──────────────────────────────────────────────────────────
+  // Order = player 0 (accent blue), Chaos = player 1 (warm orange)
+  const pillsBar = el('div', { class: 'oc-pills' })
+  const pillEls = [
+    el('div', { class: 'oc-pill', 'data-player': '0' }, `${escapeHtml(ctx.players[0])} (Order)`),
+    el('div', { class: 'oc-pill', 'data-player': '1' }, `${escapeHtml(ctx.players[1])} (Chaos)`),
+  ]
+  for (const p of pillEls) pillsBar.appendChild(p)
+  container.appendChild(pillsBar)
+
   // ── Symbol chooser ───────────────────────────────────────────────────────
   const symbolBar = el('div', { class: 'oc-symbol-bar' })
   const labelChoose = el('span', { class: 'oc-symbol-label' }, 'Place:')
@@ -257,6 +267,11 @@ function renderGame(
       statusBar.innerHTML = `<strong>${name}</strong> (${role}) &mdash; ${goal}`
     }
 
+    // Player pills
+    for (let i = 0; i < pillEls.length; i++) {
+      pillEls[i].classList.toggle('oc-pill-active', phase === 'playing' && currentPlayer === i)
+    }
+
     // Symbol buttons
     btnX.classList.toggle('oc-sym-active', pendingSymbol === 'X')
     btnO.classList.toggle('oc-sym-active', pendingSymbol === 'O')
@@ -314,6 +329,46 @@ function renderGame(
 
     .oc-winner {
       color: var(--accent);
+    }
+
+    .oc-pills {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .oc-pill {
+      padding: 0.3em 0.85em;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background: var(--bg-elev);
+      font-size: 0.9rem;
+      opacity: 0.4;
+      transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .oc-pill[data-player="0"] { color: var(--accent); }
+    .oc-pill[data-player="1"] { color: #ff9f6b; }
+
+    .oc-pill.oc-pill-active {
+      opacity: 1;
+      border-color: currentColor;
+    }
+
+    .oc-pill[data-player="0"].oc-pill-active {
+      background: color-mix(in srgb, var(--accent) 15%, var(--bg-elev));
+    }
+
+    .oc-pill[data-player="1"].oc-pill-active {
+      background: color-mix(in srgb, #ff9f6b 15%, var(--bg-elev));
+    }
+
+    @keyframes oc-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+      50%       { box-shadow: 0 0 0 4px transparent; }
+    }
+
+    .oc-pill.oc-pill-active {
+      animation: oc-pulse 1.5s ease-in-out infinite;
     }
 
     .oc-symbol-bar {

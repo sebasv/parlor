@@ -207,6 +207,46 @@ const CSS = `
   outline-offset: 2px;
 }
 
+.cf-pills {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.cf-pill {
+  padding: 0.3em 0.85em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--bg-elev, #1a1d24);
+  font-size: 0.9rem;
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.cf-pill[data-player="1"] { color: var(--cf-p1); }
+.cf-pill[data-player="2"] { color: var(--cf-p2); }
+
+.cf-pill.cf-pill-active {
+  opacity: 1;
+  border-color: currentColor;
+}
+
+.cf-pill[data-player="1"].cf-pill-active {
+  background: color-mix(in srgb, var(--cf-p1) 15%, var(--bg-elev, #1a1d24));
+}
+
+.cf-pill[data-player="2"].cf-pill-active {
+  background: color-mix(in srgb, var(--cf-p2) 15%, var(--bg-elev, #1a1d24));
+}
+
+@keyframes cf-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+.cf-pill.cf-pill-active {
+  animation: cf-pulse 1.5s ease-in-out infinite;
+}
+
 .cf-actions {
   display: flex;
   gap: 0.75rem;
@@ -259,6 +299,16 @@ const game: GameModule = {
     const wrapper = el('div', { class: 'cf-root' })
 
     const statusEl = el('div', { class: 'cf-status' })
+
+    // Player pills — one per player, highlighting the active one
+    const pillsEl = el('div', { class: 'cf-pills' })
+    const pillEls: HTMLDivElement[] = []
+    for (let i = 0; i < 2; i++) {
+      const pill = el('div', { class: 'cf-pill', 'data-player': String(i + 1) })
+      pill.textContent = ctx.players[i]
+      pillsEl.appendChild(pill)
+      pillEls.push(pill)
+    }
 
     // Board: a flat CSS grid containing 7 column-button overlays,
     // each wrapping its 6 cells stacked via grid placement.
@@ -314,6 +364,7 @@ const game: GameModule = {
     actionsEl.appendChild(exitBtn)
 
     wrapper.appendChild(statusEl)
+    wrapper.appendChild(pillsEl)
     wrapper.appendChild(boardWrap)
     wrapper.appendChild(actionsEl)
     root.appendChild(wrapper)
@@ -360,9 +411,17 @@ const game: GameModule = {
       }
     }
 
+    function renderPills(winCells: [number, number][] | null = null): void {
+      for (let i = 0; i < pillEls.length; i++) {
+        const isActive = !gameOver && winCells === null && currentPlayer === i + 1
+        pillEls[i].classList.toggle('cf-pill-active', isActive)
+      }
+    }
+
     function render(winCells: [number, number][] | null = null): void {
       renderBoard(winCells)
       renderStatus(winCells)
+      renderPills(winCells)
       setColBtnsDisabled(gameOver)
     }
 

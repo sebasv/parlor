@@ -161,6 +161,46 @@ const NIM_CSS = `
   font-size: 1.5rem;
 }
 
+.nim-pills {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.nim-pill {
+  padding: 0.3em 0.85em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--bg-elev);
+  font-size: 0.9rem;
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.nim-pill[data-player="0"] { color: var(--accent); }
+.nim-pill[data-player="1"] { color: var(--p2-color, #f97316); }
+
+.nim-pill.nim-pill-active {
+  opacity: 1;
+  border-color: currentColor;
+}
+
+.nim-pill[data-player="0"].nim-pill-active {
+  background: color-mix(in srgb, var(--accent) 15%, var(--bg-elev));
+}
+
+.nim-pill[data-player="1"].nim-pill-active {
+  background: color-mix(in srgb, var(--p2-color, #f97316) 15%, var(--bg-elev));
+}
+
+@keyframes nim-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+.nim-pill.nim-pill-active {
+  animation: nim-pulse 1.5s ease-in-out infinite;
+}
+
 .nim-piles {
   display: flex;
   flex-wrap: wrap;
@@ -299,6 +339,17 @@ const game: GameModule = {
     const wrapper = el('div', { class: 'nim-wrapper' })
 
     const statusEl = el('div', { class: 'nim-status' })
+
+    // Player pills
+    const pillsEl = el('div', { class: 'nim-pills' })
+    const pillEls: HTMLDivElement[] = []
+    for (let i = 0; i < 2; i++) {
+      const pill = el('div', { class: 'nim-pill', 'data-player': String(i) })
+      pill.textContent = ctx.players[i]
+      pillsEl.appendChild(pill)
+      pillEls.push(pill)
+    }
+
     const pilesAreaEl = el('div', { class: 'nim-piles' })
 
     const actionBar = el('div', { class: 'nim-action-bar' })
@@ -317,7 +368,7 @@ const game: GameModule = {
       config.variant === 'normal' ? 'Take the last token to WIN' : 'Take the last token to LOSE',
     )
 
-    wrapper.append(statusEl, pilesAreaEl, actionBar, variantLabel, footer)
+    wrapper.append(statusEl, pillsEl, pilesAreaEl, actionBar, variantLabel, footer)
     root.appendChild(wrapper)
 
     // -----------------------------------------------------------------------
@@ -332,6 +383,14 @@ const game: GameModule = {
       } else {
         statusEl.innerHTML = `<span class="nim-turn">${escapeHtml(ctx.players[state.currentPlayer])}'s turn</span>`
         statusEl.className = 'nim-status'
+      }
+
+      // Player pills
+      for (let i = 0; i < pillEls.length; i++) {
+        pillEls[i].classList.toggle(
+          'nim-pill-active',
+          state.phase === 'playing' && state.currentPlayer === i,
+        )
       }
 
       // Piles

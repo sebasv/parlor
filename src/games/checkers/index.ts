@@ -108,14 +108,44 @@ const game: GameModule = {
 
       .dr-scores {
         display: flex;
-        gap: 1.5rem;
+        gap: 0.75rem;
         font-size: 0.9rem;
         color: var(--fg-dim);
       }
-      .dr-score-item { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+      .dr-score-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.15rem;
+        padding: 0.35em 0.85em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: var(--bg-elev, #1a1d24);
+        opacity: 0.45;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+      }
       .dr-score-name { font-size: 0.8rem; }
       .dr-score-val { font-size: 1.2rem; font-weight: 700; color: var(--fg); }
-      .dr-score-item.dr-active-player .dr-score-name { color: var(--accent); }
+      /* player-light = ivory tones, player-dark = red */
+      .dr-score-item[data-piece="light"] { color: #c8b89a; }
+      .dr-score-item[data-piece="dark"]  { color: #c44; }
+      .dr-score-item.dr-active-player {
+        opacity: 1;
+        border-color: currentColor;
+      }
+      .dr-score-item[data-piece="light"].dr-active-player {
+        background: color-mix(in srgb, #c8b89a 15%, var(--bg-elev, #1a1d24));
+      }
+      .dr-score-item[data-piece="dark"].dr-active-player {
+        background: color-mix(in srgb, #c44 15%, var(--bg-elev, #1a1d24));
+      }
+      @keyframes dr-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+        50%       { box-shadow: 0 0 0 4px transparent; }
+      }
+      .dr-score-item.dr-active-player {
+        animation: dr-pulse 1.5s ease-in-out infinite;
+      }
 
       .dr-board-wrap {
         width: min(96vw, 90vh, 640px);
@@ -638,6 +668,7 @@ const game: GameModule = {
       for (const p of [0, 1] as const) {
         const div = document.createElement('div')
         div.className = 'dr-score-item'
+        div.setAttribute('data-piece', p === 0 ? 'light' : 'dark')
         if (!gameOver && state.turn === p) div.classList.add('dr-active-player')
         const nameSpan = document.createElement('span')
         nameSpan.className = 'dr-score-name'

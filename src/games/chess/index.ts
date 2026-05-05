@@ -94,10 +94,32 @@ const game: GameModule = {
         color: var(--fg-dim);
         text-align: center;
         min-height: 1.4em;
+        padding: 0.3em 0.85em;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background: var(--bg-elev, #1a1d24);
+        opacity: 0.45;
+        transition: opacity 0.15s, border-color 0.15s, background 0.15s;
+      }
+      .ch-player-tag.ch-white { color: #f0d9b5; }
+      .ch-player-tag.ch-black { color: #a0a0b0; }
+      .ch-player-tag.ch-active {
+        opacity: 1;
+        font-weight: 600;
+        border-color: currentColor;
+      }
+      .ch-player-tag.ch-white.ch-active {
+        background: color-mix(in srgb, #f0d9b5 15%, var(--bg-elev, #1a1d24));
+      }
+      .ch-player-tag.ch-black.ch-active {
+        background: color-mix(in srgb, #a0a0b0 15%, var(--bg-elev, #1a1d24));
+      }
+      @keyframes ch-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+        50%       { box-shadow: 0 0 0 4px transparent; }
       }
       .ch-player-tag.ch-active {
-        color: var(--fg);
-        font-weight: 600;
+        animation: ch-pulse 1.5s ease-in-out infinite;
       }
       .ch-player-tag .ch-color-dot {
         display: inline-block;
@@ -428,12 +450,12 @@ const game: GameModule = {
 
       // Black player at top
       blackTagEl.innerHTML = `<span class="ch-color-dot ch-black-dot"></span>${escapeHtml(blackName)} (Black)`
-      blackTagEl.className = 'ch-player-tag'
+      blackTagEl.className = 'ch-player-tag ch-black'
       if (!isOver && turn === 'b') blackTagEl.classList.add('ch-active')
 
       // White player at bottom
       whiteTagEl.innerHTML = `<span class="ch-color-dot ch-white-dot"></span>${escapeHtml(whiteName)} (White)`
-      whiteTagEl.className = 'ch-player-tag'
+      whiteTagEl.className = 'ch-player-tag ch-white'
       if (!isOver && turn === 'w') whiteTagEl.classList.add('ch-active')
     }
 
