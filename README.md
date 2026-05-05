@@ -58,6 +58,8 @@ The shell hands the game an empty `<div>` to own. The game returns a cleanup fun
 
 See `src/games/placeholder/` for a minimal working example.
 
+Each game folder also carries a `<game-id>-design.md` documenting the design choices made for that implementation, including any deviations from canonical rules. Read it before changing a game.
+
 ### How-to-play / rules
 
 Each game's `meta.ts` may include an optional `rules: Record<Locale, RulesContent>` field. When present, the shell shows a "How to play" screen between picker and game with a language toggle (EN / NL persisted to localStorage), and a `?` button in the game header re-opens it during play. Games without `rules` go straight to play. See `src/games/placeholder/meta.ts` for the structure (`title?`, `sections: [{ heading, paragraphs?, bullets? }]`).
