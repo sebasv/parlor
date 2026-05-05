@@ -223,9 +223,11 @@ const game: GameModule = {
         border-radius: 999px;
         font-weight: 700;
         font-size: 0.9rem;
-        color: #000;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         min-width: 3.5em;
         text-align: center;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
       }
 
       .set-status {
@@ -268,8 +270,8 @@ const game: GameModule = {
       }
 
       .set-card {
-        background: #1e2230;
-        border: 2.5px solid transparent;
+        background: #f5f5f5;
+        border: 2.5px solid #c8c8c8;
         border-radius: 10px;
         padding: 0.4rem 0.2rem;
         display: flex;
@@ -277,13 +279,16 @@ const game: GameModule = {
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: border-color 0.12s, background 0.12s;
+        transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
         min-height: 80px;
         aspect-ratio: 0.65;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.18);
       }
 
       .set-card:hover:not(:disabled) {
-        background: #252a38;
+        background: #fff;
+        border-color: #999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.22);
       }
 
       .set-card:disabled {
@@ -292,7 +297,8 @@ const game: GameModule = {
 
       .set-card.set-card--selected {
         border-color: var(--accent);
-        background: #1a2540;
+        background: #fff;
+        box-shadow: 0 0 0 3px var(--accent), 0 2px 8px rgba(0,0,0,0.2);
       }
 
       .set-card-symbols {
@@ -325,14 +331,35 @@ const game: GameModule = {
         font-weight: 700;
         border: none;
         border-radius: var(--radius);
-        color: #000;
+        color: #fff;
         cursor: pointer;
-        transition: opacity 0.12s;
+        transition: opacity 0.12s, box-shadow 0.12s;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        letter-spacing: 0.01em;
+      }
+
+      .set-claim-btn::after {
+        content: ' ▶ TAP';
+        font-size: 0.7em;
+        opacity: 0.85;
+        display: block;
+        font-weight: 400;
+        letter-spacing: 0.05em;
+      }
+
+      .set-claim-btn:hover:not(:disabled) {
+        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
       }
 
       .set-claim-btn:disabled {
         opacity: 0.45;
         cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .set-claim-btn:disabled::after {
+        display: none;
       }
 
       .set-selection-controls {
@@ -583,7 +610,8 @@ const game: GameModule = {
       const color = PLAYER_COLORS[claimingPlayer] ?? '#aaa'
       claimBanner.style.display = ''
       claimBanner.style.background = color
-      claimBanner.style.color = '#000'
+      claimBanner.style.color = '#fff'
+      claimBanner.style.textShadow = '0 1px 2px rgba(0,0,0,0.35)'
       claimBanner.innerHTML = `${name} is selecting <span class="set-countdown">(${countdownSeconds}s)</span>`
     }
 
