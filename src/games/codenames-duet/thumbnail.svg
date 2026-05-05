@@ -1,0 +1,63 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Codenames Duet thumbnail">
+  <rect width="200" height="125" fill="#1a1d24"/>
+
+  <!-- 5x5 grid of word cards, 34x18px each, 4px gap, centred -->
+  <!-- Top-left of grid: x=8, y=12 -->
+  <!-- Col offsets: 0,38,76,114,152  Row offsets: 0,22,44,66,88 -->
+
+  <!-- Row 0 -->
+  <rect x="8"   y="12" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="46"  y="12" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+  <rect x="84"  y="12" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="122" y="12" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+  <rect x="160" y="12" width="34" height="18" rx="2" fill="#2a2f38"/>
+
+  <!-- Row 1 -->
+  <rect x="8"   y="34" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="46"  y="34" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="84"  y="34" width="34" height="18" rx="2" fill="#cc4444"/><!-- assassin -->
+  <rect x="122" y="34" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="160" y="34" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+
+  <!-- Row 2 -->
+  <rect x="8"   y="56" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+  <rect x="46"  y="56" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="84"  y="56" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="122" y="56" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="160" y="56" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+
+  <!-- Row 3 -->
+  <rect x="8"   y="78" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="46"  y="78" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+  <rect x="84"  y="78" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="122" y="78" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="160" y="78" width="34" height="18" rx="2" fill="#2a2f38"/>
+
+  <!-- Row 4 -->
+  <rect x="8"   y="100" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="46"  y="100" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="84"  y="100" width="34" height="18" rx="2" fill="#6cb1ff"/><!-- agent -->
+  <rect x="122" y="100" width="34" height="18" rx="2" fill="#2a2f38"/>
+  <rect x="160" y="100" width="34" height="18" rx="2" fill="#2a2f38"/>
+
+  <!-- Word lines on neutral cards (row 0) -->
+  <line x1="14"  y1="21" x2="36"  y2="21" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="90"  y1="21" x2="112" y2="21" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="166" y1="21" x2="188" y2="21" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Word lines row1 neutrals -->
+  <line x1="14"  y1="43" x2="36"  y2="43" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="52"  y1="43" x2="74"  y2="43" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="128" y1="43" x2="150" y2="43" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Word lines on agent cards (lighter) -->
+  <line x1="52"  y1="21" x2="74"  y2="21" stroke="#1a1d24" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  <line x1="128" y1="21" x2="150" y2="21" stroke="#1a1d24" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Assassin skull dot on red card -->
+  <circle cx="101" cy="43" r="5" fill="#1a1d24" opacity="0.7"/>
+  <circle cx="98"  cy="41" r="1.5" fill="#cc4444"/>
+  <circle cx="104" cy="41" r="1.5" fill="#cc4444"/>
+
+  <!-- Clue badge bottom-right -->
+  <rect x="142" y="105" width="46" height="12" rx="3" fill="#6cb1ff" opacity="0.15" stroke="#6cb1ff" stroke-width="1"/>
+  <text x="165" y="114" text-anchor="middle" fill="#6cb1ff" font-family="system-ui" font-size="8" font-weight="bold">CLUE: 3</text>
+</svg>
