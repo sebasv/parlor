@@ -184,7 +184,7 @@ const CSS = `
   font-weight: 600;
 }
 .cd-status-turns { color: #6cb1ff; }
-.cd-status-agents { color: #27a85a; }
+.cd-status-agents { color: #4dd880; }
 
 /* ---- Clue display (guesser view) ---- */
 .cd-clue-display {
@@ -294,7 +294,7 @@ const CSS = `
 }
 /* Already revealed tiles in spymaster view — dimmed */
 .cd-tile[data-spymaster][data-revealed="true"] {
-  opacity: 0.35;
+  opacity: 0.5;
 }
 
 /* ---- Clue input (spymaster) ---- */

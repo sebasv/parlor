@@ -94,7 +94,7 @@ const game: GameModule = {
         align-items: center;
         gap: 0.4em;
         font-size: 0.95rem;
-        opacity: 0.55;
+        opacity: 0.65;
         transition: opacity 0.15s;
       }
       .qr-player-chip.active {
@@ -132,7 +132,7 @@ const game: GameModule = {
         border-color: var(--accent);
       }
       .qr-mode-btn:disabled {
-        opacity: 0.35;
+        opacity: 0.5;
         cursor: not-allowed;
       }
       .qr-svg-wrap {

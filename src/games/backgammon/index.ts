@@ -109,9 +109,9 @@ const BAR_X = 10 + 6 * POINT_W + BAR_W / 2
 // ---------- Colors ----------
 
 const TRIANGLE_COLORS = ['#c0392b', '#ecf0f1'] // alternating red/white (dark/light triangles)
-const CHECKER_FILL: [string, string] = ['#f5f5f0', '#1a1a2e'] // player 0 white, player 1 dark
-const CHECKER_STROKE: [string, string] = ['#9a9a8a', '#4a4a6e']
-const CHECKER_TEXT: [string, string] = ['#333', '#ddd']
+const CHECKER_FILL: [string, string] = ['#f5f5f0', '#c44b4b'] // player 0 ivory, player 1 warm red
+const CHECKER_STROKE: [string, string] = ['#9a9a8a', '#ff8080']
+const CHECKER_TEXT: [string, string] = ['#1a1a1a', '#fff']
 const HIGHLIGHT_FILL = '#6cb1ff'
 const HIT_FILL = '#ff9f43'
 const SELECTED_FILL = '#2ecc71'
@@ -206,8 +206,8 @@ const game: GameModule = {
         transition: opacity 0.15s;
       }
       .bg-die.bg-die-used {
-        opacity: 0.28;
-        border-color: #444;
+        opacity: 0.45;
+        border-color: #555;
         color: var(--fg-dim);
       }
       .bg-die.bg-die-highlight {

@@ -139,9 +139,9 @@ const game: GameModule = {
         border: 2px solid #a0906a;
       }
       .dr-piece.dr-piece-dark {
-        background: radial-gradient(circle at 35% 35%, #4a3520, #1a0e05);
-        color: #d0b870;
-        border: 2px solid #5a4530;
+        background: radial-gradient(circle at 35% 35%, #c44, #7a1010);
+        color: #ffe8e8;
+        border: 2px solid #ff8080;
       }
 
       .dr-controls {

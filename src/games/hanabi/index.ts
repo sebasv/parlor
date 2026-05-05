@@ -150,8 +150,9 @@ const CSS = `
 }
 .hb-fw-card[data-empty="true"] {
   background: #1a1d24;
-  color: #333;
+  color: #6a7080;
   font-size: 1rem;
+  border: 2px solid #2e3548;
 }
 
 /* ---- Player hands ---- */
@@ -833,7 +834,7 @@ const game: GameModule = {
           opt.style.color = SUIT_COLORS[suit]
           if (!hasMatch) {
             opt.disabled = true
-            opt.style.opacity = '0.3'
+            opt.style.opacity = '0.45'
           }
           opt.addEventListener('click', () => {
             dispatch({ type: 'clue', targetPlayer: target, feature: { kind: 'suit', suit } })
@@ -853,7 +854,7 @@ const game: GameModule = {
           opt.textContent = String(rank)
           if (!hasMatch) {
             opt.disabled = true
-            opt.style.opacity = '0.3'
+            opt.style.opacity = '0.45'
           }
           opt.addEventListener('click', () => {
             dispatch({ type: 'clue', targetPlayer: target, feature: { kind: 'rank', rank } })
