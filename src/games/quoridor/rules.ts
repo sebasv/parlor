@@ -85,12 +85,14 @@ export function blockedNorth(state: GameState, r: number, c: number): boolean {
 /** Is movement from (r,c) going east (to r,c+1) blocked by a wall? */
 export function blockedEast(state: GameState, r: number, c: number): boolean {
   if (c >= WALL_GRID) return false
+  if (r >= WALL_GRID) return false // vWalls is WALL_GRID×WALL_GRID; row 8 has no wall segments
   return state.vWalls[r][c]
 }
 
 /** Is movement from (r,c) going west (to r,c-1) blocked by a wall? */
 export function blockedWest(state: GameState, r: number, c: number): boolean {
   if (c === 0) return false
+  if (r >= WALL_GRID) return false // vWalls is WALL_GRID×WALL_GRID; row 8 has no wall segments
   return state.vWalls[r][c - 1]
 }
 
@@ -164,7 +166,8 @@ export function canPlaceWall(state: GameState, wall: Wall): boolean {
     // Cross-check: a vertical wall at (r, c) would occupy vWalls[r][c] and vWalls[r+1][c].
     // A horizontal wall at anchor (r, c) shares center point (r+1, c+1) with vertical wall at (r, c).
     // Crossing occurs when vWalls[r][c] AND vWalls[r+1][c] are both set (a full vertical wall at col-gap c).
-    if (state.vWalls[r][c] && state.vWalls[r + 1][c]) return false
+    // Guard r+1 < WALL_GRID because r can be 7 (h-wall r is in [0,7]) and vWalls only has rows 0-7.
+    if (r + 1 < WALL_GRID && state.vWalls[r][c] && state.vWalls[r + 1][c]) return false
   } else {
     // Occupies vWalls[r][c] and vWalls[r+1][c]
     if (r > WALL_GRID - 2) return false // second segment out of bounds
