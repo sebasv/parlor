@@ -5,9 +5,9 @@ const meta: GameMeta = {
   title: 'Hex',
   preferredOrientation: 'landscape',
   description:
-    'Two players claim hexes on an 11×11 rhombus grid. First to connect your two opposite edges wins. Cannot end in a draw.',
+    'Claim hexes and connect your two opposite edges. 2 players on a rhombus board; 3 players on a hexagonal board. Cannot end in a draw (2-player only).',
   minPlayers: 2,
-  maxPlayers: 2,
+  maxPlayers: 3,
   rules: {
     en: {
       title: 'Hex',
@@ -15,23 +15,23 @@ const meta: GameMeta = {
         {
           heading: 'Goal',
           paragraphs: [
-            'Connect your two edges of the board with an unbroken chain of your own hexagons. Player 1 (red) links the top and bottom edges. Player 2 (blue) links the left and right edges.',
+            '2 players: Connect your two opposite edges of the rhombus board with an unbroken chain of your own hexagons. Player 1 (red) links the top and bottom edges; Player 2 (blue) links the left and right edges.',
+            '3 players: The board is a regular hexagon. Each player owns two opposite sides (shown in their colour). Be the first to connect your two sides with an unbroken chain.',
           ],
         },
         {
           heading: 'How to play',
           bullets: [
-            'The board is an 11×11 grid of hexagons. Each player owns one pair of opposite edges, shown in their color.',
-            'On your turn, tap any empty hexagon to claim it in your color.',
+            'On your turn, tap any empty hexagon to claim it in your colour.',
             'Hexagons count as connected if they share a side.',
-            'The first player to form a chain from one of their edges to the other wins.',
-            'The game can never end in a draw.',
+            'The first player to form a chain from one of their edges to their opposite edge wins.',
+            '2 players: the game can never end in a draw. 3 players: a draw is theoretically possible but extremely rare in practice.',
           ],
         },
         {
           heading: 'Tip',
           paragraphs: [
-            'The center of the board is powerful — controlling it makes it much easier to build your chain.',
+            'The centre of the board is powerful — controlling it makes it much easier to build your chain.',
           ],
         },
       ],
@@ -42,17 +42,17 @@ const meta: GameMeta = {
         {
           heading: 'Doel',
           paragraphs: [
-            'Verbind jouw twee randen van het bord met een aaneengesloten ketting van jouw zeshoekjes. Speler 1 (rood) verbindt boven en onder. Speler 2 (blauw) verbindt links en rechts.',
+            '2 spelers: Verbind jouw twee tegenoverliggende randen van het ruitvormige bord met een aaneengesloten ketting van jouw zeshoekjes. Speler 1 (rood) verbindt boven en onder; speler 2 (blauw) verbindt links en rechts.',
+            '3 spelers: Het bord is een regelmatige zeshoek. Elke speler bezit twee tegenoverliggende zijden (in zijn kleur). De eerste die zijn twee zijden verbindt met een aaneengesloten ketting wint.',
           ],
         },
         {
           heading: 'Spelen',
           bullets: [
-            'Het bord heeft 11×11 zeshoekige vakjes. Elke speler bezit één paar tegenoverliggende randen, aangeduid in zijn kleur.',
             'Tik op een leeg vakje om het in jouw kleur te claimen.',
             'Vakjes zijn verbonden als ze een zijde delen.',
-            'De eerste speler die een ketting vormt van de ene rand naar de andere wint.',
-            'Het spel kan nooit eindigen in een gelijkspel.',
+            'De eerste speler die een ketting vormt van de ene rand naar zijn tegenoverliggende rand wint.',
+            '2 spelers: gelijkspel is onmogelijk. 3 spelers: gelijkspel is theoretisch mogelijk maar extreem zeldzaam.',
           ],
         },
         {
