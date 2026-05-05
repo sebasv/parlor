@@ -1082,7 +1082,7 @@ const game: GameModule = {
       for (let p = 0; p < state.playerCount; p++) {
         const row = document.createElement('div')
         row.className = `ludo-player-row${p === state.turn ? ' active' : ''}`
-        row.style.setProperty('--ludo-row-color', PLAYER_COLORS[p])
+        row.style.setProperty('--ludo-row-color', playerColor(p))
 
         const dot = document.createElement('div')
         dot.className = 'ludo-player-dot'
