@@ -430,7 +430,7 @@ const game: GameModule = {
       | { kind: 'clue-pick-feature'; targetPlayer: number }
     let uiMode: UiMode = { kind: 'idle' }
 
-    // Pass screen tracking
+    // Pass screen tracking — also used to block initial render until handoff is cleared
     let passScreenShowing = false
 
     // ---------------------------------------------------------------------------
@@ -942,7 +942,9 @@ const game: GameModule = {
       newGameBtn.addEventListener('click', () => {
         state = createInitialState(players.length)
         uiMode = { kind: 'idle' }
-        render()
+        showPassScreen(0, () => {
+          render()
+        })
       })
 
       const exitBtn = el('button', { class: 'hb-btn', type: 'button' })
@@ -995,8 +997,10 @@ const game: GameModule = {
       }
     }
 
-    // Initial render
-    render()
+    // Show handoff screen before revealing the first player's hand
+    showPassScreen(0, () => {
+      render()
+    })
 
     // Cleanup
     return () => {

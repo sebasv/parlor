@@ -914,7 +914,13 @@ const game: GameModule = {
       newGameBtn.textContent = 'New game'
       newGameBtn.addEventListener('click', () => {
         state = createInitialState(players)
-        render()
+        showPassScreen(
+          players[0],
+          `${players[0]} is the first Spymaster. Only they should see the key card.`,
+          () => {
+            render()
+          },
+        )
       })
 
       const exitBtn = el('button', { class: 'cd-btn', type: 'button' })
@@ -954,8 +960,14 @@ const game: GameModule = {
       // pass-to-* phases are handled by pass screen; render does nothing new
     }
 
-    // Initial render
-    render()
+    // Show handoff screen before revealing the first spymaster's key card
+    showPassScreen(
+      players[0],
+      `${players[0]} is the first Spymaster. Only they should see the key card.`,
+      () => {
+        render()
+      },
+    )
 
     return () => {
       wrapper.remove()
