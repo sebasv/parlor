@@ -1,0 +1,15 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hex thumbnail"><rect width="200" height="125" fill="#1a1d24"/>
+<defs><polygon id="e" points="0,-9 7.8,-4.5 7.8,4.5 0,9 -7.8,4.5 -7.8,-4.5" fill="#2a2f38" stroke="#3a4050" stroke-width=".8"/><polygon id="b" points="0,-9 7.8,-4.5 7.8,4.5 0,9 -7.8,4.5 -7.8,-4.5" fill="#6cb1ff" stroke="#5090cc" stroke-width=".8" opacity=".88"/><polygon id="w" points="0,-9 7.8,-4.5 7.8,4.5 0,9 -7.8,4.5 -7.8,-4.5" fill="#e8a14d" stroke="#c07030" stroke-width=".8" opacity=".88"/></defs>
+<use href="#b" transform="translate(18,13)"/><use href="#e" transform="translate(34,13)"/><use href="#e" transform="translate(50,13)"/><use href="#e" transform="translate(66,13)"/><use href="#e" transform="translate(82,13)"/><use href="#e" transform="translate(98,13)"/>
+<use href="#b" transform="translate(26,27)"/><use href="#e" transform="translate(42,27)"/><use href="#w" transform="translate(58,27)"/><use href="#e" transform="translate(74,27)"/><use href="#e" transform="translate(90,27)"/><use href="#e" transform="translate(106,27)"/>
+<use href="#e" transform="translate(18,41)"/><use href="#b" transform="translate(34,41)"/><use href="#w" transform="translate(50,41)"/><use href="#w" transform="translate(66,41)"/><use href="#e" transform="translate(82,41)"/><use href="#e" transform="translate(98,41)"/>
+<use href="#e" transform="translate(26,55)"/><use href="#e" transform="translate(42,55)"/><use href="#b" transform="translate(58,55)"/><use href="#w" transform="translate(74,55)"/><use href="#e" transform="translate(90,55)"/><use href="#e" transform="translate(106,55)"/>
+<use href="#e" transform="translate(18,69)"/><use href="#e" transform="translate(34,69)"/><use href="#e" transform="translate(50,69)"/><use href="#b" transform="translate(66,69)"/><use href="#e" transform="translate(82,69)"/><use href="#e" transform="translate(98,69)"/>
+<use href="#e" transform="translate(26,83)"/><use href="#e" transform="translate(42,83)"/><use href="#e" transform="translate(58,83)"/><use href="#b" transform="translate(74,83)"/><use href="#e" transform="translate(90,83)"/><use href="#e" transform="translate(106,83)"/>
+<use href="#e" transform="translate(18,97)"/><use href="#e" transform="translate(34,97)"/><use href="#e" transform="translate(50,97)"/><use href="#e" transform="translate(66,97)"/><use href="#e" transform="translate(82,97)"/><use href="#e" transform="translate(98,97)"/>
+<line x1="10" y1="4" x2="106" y2="4" stroke="#6cb1ff" stroke-width="3" opacity=".5"/>
+<line x1="18" y1="106" x2="114" y2="106" stroke="#6cb1ff" stroke-width="3" opacity=".5"/>
+<line x1="10" y1="8" x2="26" y2="101" stroke="#e8a14d" stroke-width="3" opacity=".5"/>
+<line x1="98" y1="4" x2="114" y2="101" stroke="#e8a14d" stroke-width="3" opacity=".5"/>
+<text x="152" y="66" text-anchor="middle" fill="#9aa0a6" font-family="system-ui" font-size="11">HEX</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg viewBox="0 0 200 125" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quoridor thumbnail"><rect width="200" height="125" fill="#1a1d24"/>
+<!-- 9x9 grid via pattern: cell=11, gap=1.5, step=12.5, board=111px, x0=44, y0=7 -->
+<defs>
+<pattern id="g" x="0" y="0" width="12.5" height="12.5" patternUnits="userSpaceOnUse">
+<rect x=".75" y=".75" width="11" height="11" rx="1" fill="#2a2f38"/>
+</pattern>
+</defs>
+<rect x="44" y="7" width="111" height="111" fill="url(#g)" rx="1"/>
+<!-- Blue pawn row3 col4: cx=44+4*12.5+6.25=94.25, cy=7+3*12.5+6.25=50.75 -->
+<circle cx="94.25" cy="50.75" r="6.5" fill="#6cb1ff"/>
+<circle cx="94.25" cy="50.75" r="2.5" fill="#1a1d24" opacity=".5"/>
+<!-- Warm pawn row5 col5: cx=44+5*12.5+6.25=112.75, cy=7+5*12.5+6.25=76.25 -->
+<circle cx="112.75" cy="76.25" r="6.5" fill="#e8a14d"/>
+<circle cx="112.75" cy="76.25" r="2.5" fill="#1a1d24" opacity=".5"/>
+<!-- Blue horizontal wall rows3-4 cols1-3: y=7+4*12.5-.75=55.75, x=44+1*12.5=56.5, w=25 -->
+<rect x="56.5" y="55.75" width="25" height="2" rx="1" fill="#6cb1ff" opacity=".9"/>
+<!-- Warm vertical wall cols5-6 rows4-6: x=44+6*12.5-.75=118.25, y=7+4*12.5=57, h=25 -->
+<rect x="118.25" y="57" width="2" height="25" rx="1" fill="#e8a14d" opacity=".9"/>
+<!-- Second warm wall cols5-6 rows5-6 -->
+<rect x="118.25" y="69.5" width="2" height="25" rx="1" fill="#e8a14d" opacity=".9"/>
+<!-- Blue wall cols3-4 rows1-2 -->
+<rect x="81" y="30.5" width="2" height="25" rx="1" fill="#6cb1ff" opacity=".9"/>
+</svg>
