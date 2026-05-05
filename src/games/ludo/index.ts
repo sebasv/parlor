@@ -195,13 +195,17 @@ function makeStarGeometry(playerCount: number): BoardGeometry {
     homeCol.push(col)
   }
 
-  // Build yards (4 pawn positions per slot, near the outer tip).
-  // Arrange 2x2 grid around a point slightly inward from the tip.
+  // Build yards (4 pawn positions per slot, clustered at the outer tip).
+  // The yard sits at the very tip of the star point — the outermost area —
+  // so it is clearly separated from the track squares that approach from the sides.
+  // A 2x2 arrangement spread mostly perpendicular keeps the cluster within the
+  // tip triangle and away from the inward track legs.
   const yard: [number, number][][] = []
   for (let i = 0; i < N; i++) {
     const tip = outerTips[i]
-    // Yard centre is between the tip and the centre, fairly close to the tip.
-    const yardCentre = lerp2(tip, centre, 0.22)
+    // Place yard centre very close to the tip (5% toward centre) so the cluster
+    // sits in the outer-tip area rather than overlapping the track approach squares.
+    const yardCentre = lerp2(tip, centre, 0.06)
     // Perpendicular offset: rotate the tip-to-centre direction by 90 deg.
     const dx = centre[0] - tip[0]
     const dy = centre[1] - tip[1]
@@ -212,12 +216,14 @@ function makeStarGeometry(playerCount: number): BoardGeometry {
     // Unit forward (toward centre)
     const fx = dx / len
     const fy = dy / len
-    const off = 14 // px offset between pawns
+    // Wider perpendicular spread, smaller forward spread to keep pawns at the tip.
+    const perpOff = 13 // px spread perpendicular to the arm axis
+    const fwdOff = 11 // px spread along the arm axis
     yard.push([
-      [yardCentre[0] - px * off - fx * off, yardCentre[1] - py * off - fy * off],
-      [yardCentre[0] + px * off - fx * off, yardCentre[1] + py * off - fy * off],
-      [yardCentre[0] - px * off + fx * off, yardCentre[1] - py * off + fy * off],
-      [yardCentre[0] + px * off + fx * off, yardCentre[1] + py * off + fy * off],
+      [yardCentre[0] - px * perpOff - fx * fwdOff, yardCentre[1] - py * perpOff - fy * fwdOff],
+      [yardCentre[0] + px * perpOff - fx * fwdOff, yardCentre[1] + py * perpOff - fy * fwdOff],
+      [yardCentre[0] - px * perpOff + fx * fwdOff, yardCentre[1] - py * perpOff + fy * fwdOff],
+      [yardCentre[0] + px * perpOff + fx * fwdOff, yardCentre[1] + py * perpOff + fy * fwdOff],
     ])
   }
 
@@ -367,32 +373,48 @@ function buildStarBoardSVG(geo: BoardGeometry, playerCount: number): SVGSVGEleme
     }
   }
 
-  // Yard areas (circle per player near the outer tip).
+  // Yard areas — each player's waiting zone near the outer tip of their star point.
+  // A tinted background with a dashed border marks it as a distinct "off-board" region.
+  // Empty slot circles give a clear visual target even before pawns are placed.
   for (let i = 0; i < N; i++) {
     const color = SLOT_COLORS[i] ?? '#888'
     const tip = starPoints[i * 2] as [number, number]
-    const yardCentre = lerp2(tip, centre2, 0.22)
+    // Yard background centred at the same position used in makeStarGeometry.
+    const yardBgCentre = lerp2(tip, centre2, 0.06)
+    // Tinted background circle (low opacity, player colour identity).
     svg.appendChild(
       svgEl('circle', {
-        cx: yardCentre[0].toFixed(1),
-        cy: yardCentre[1].toFixed(1),
-        r: 30,
+        cx: yardBgCentre[0].toFixed(1),
+        cy: yardBgCentre[1].toFixed(1),
+        r: 32,
         fill: color,
-        opacity: 0.25,
-        stroke: color,
-        'stroke-width': 2,
+        opacity: 0.08,
       }),
     )
+    // Dashed border to clearly define the yard as a separate region.
+    svg.appendChild(
+      svgEl('circle', {
+        cx: yardBgCentre[0].toFixed(1),
+        cy: yardBgCentre[1].toFixed(1),
+        r: 32,
+        fill: 'none',
+        stroke: color,
+        'stroke-width': 1.5,
+        'stroke-dasharray': '4 3',
+        opacity: 0.6,
+      }),
+    )
+    // Empty slot indicators (outline circles) show where pawns will sit.
     for (const [yx, yy] of yard[i]) {
       svg.appendChild(
         svgEl('circle', {
           cx: yx.toFixed(1),
           cy: yy.toFixed(1),
-          r: 9,
-          fill: '#fff',
+          r: 8,
+          fill: 'none',
           stroke: color,
-          'stroke-width': 1.5,
-          opacity: 0.6,
+          'stroke-width': 1,
+          opacity: 0.35,
         }),
       )
     }
@@ -780,6 +802,8 @@ const game: GameModule = {
 
     /**
      * Animate a captured pawn flying back to its yard slot (250ms ease-out).
+     * The pawn transitions from in-play style (solid, full-size) to yard style
+     * (outline-only, smaller, reduced opacity) as it lands.
      */
     function animateCapturedPawn(
       fromCx: number,
@@ -792,6 +816,7 @@ const game: GameModule = {
       const circle = document.createElementNS(NS, 'circle')
       circle.setAttribute('cx', String(fromCx))
       circle.setAttribute('cy', String(fromCy))
+      // Start as in-play size; shrink toward yard size as it lands.
       circle.setAttribute('r', String(geo.cell * 0.35))
       circle.setAttribute('fill', color)
       circle.setAttribute('stroke', '#333')
@@ -809,6 +834,9 @@ const game: GameModule = {
         const eased = 1 - (1 - t) * (1 - t)
         circle.setAttribute('cx', String(fromCx + dx * eased))
         circle.setAttribute('cy', String(fromCy + dy * eased))
+        // Interpolate radius from in-play (0.35) toward yard (0.25) and fade opacity.
+        circle.setAttribute('r', String(geo.cell * (0.35 - 0.1 * eased)))
+        circle.setAttribute('opacity', String(1 - 0.35 * eased))
         if (t < 1) {
           requestAnimationFrame(tick)
         } else {
@@ -872,6 +900,7 @@ const game: GameModule = {
         const key = `${pawn.player},${pawn.slot}`
         const isSelectable = w === null && movableSlots.has(key)
         const color = playerColor(pawn.player)
+        const isInYard = pawn.pos.zone === 'yard'
 
         const g = document.createElementNS(NS, 'g')
         g.setAttribute('class', `ludo-pawn${isSelectable ? ' selectable' : ''}`)
@@ -879,22 +908,36 @@ const game: GameModule = {
         const circle = document.createElementNS(NS, 'circle')
         circle.setAttribute('cx', String(cx))
         circle.setAttribute('cy', String(cy))
-        circle.setAttribute('r', String(geo.cell * 0.35))
-        circle.setAttribute('fill', color)
-        circle.setAttribute('stroke', '#333')
-        circle.setAttribute('stroke-width', '1.5')
 
-        const text = document.createElementNS(NS, 'text')
-        text.setAttribute('x', String(cx))
-        text.setAttribute('y', String(cy + 4))
-        text.setAttribute('text-anchor', 'middle')
-        text.setAttribute('font-size', '9')
-        text.setAttribute('fill', '#000')
-        text.setAttribute('pointer-events', 'none')
-        text.textContent = String(pawn.slot + 1)
+        if (isInYard) {
+          // Yard pawns: smaller, outline-only stroke, reduced opacity — clearly "not in play".
+          circle.setAttribute('r', String(geo.cell * 0.25))
+          circle.setAttribute('fill', 'none')
+          circle.setAttribute('stroke', color)
+          circle.setAttribute('stroke-width', '2')
+          g.setAttribute('opacity', '0.65')
+        } else {
+          // In-play pawns: full size, full opacity, solid fill.
+          circle.setAttribute('r', String(geo.cell * 0.35))
+          circle.setAttribute('fill', color)
+          circle.setAttribute('stroke', '#333')
+          circle.setAttribute('stroke-width', '1.5')
+        }
 
         g.appendChild(circle)
-        g.appendChild(text)
+
+        // Only show the slot number label on in-play pawns to reduce yard clutter.
+        if (!isInYard) {
+          const text = document.createElementNS(NS, 'text')
+          text.setAttribute('x', String(cx))
+          text.setAttribute('y', String(cy + 4))
+          text.setAttribute('text-anchor', 'middle')
+          text.setAttribute('font-size', '9')
+          text.setAttribute('fill', '#000')
+          text.setAttribute('pointer-events', 'none')
+          text.textContent = String(pawn.slot + 1)
+          g.appendChild(text)
+        }
 
         if (isSelectable) {
           g.addEventListener('click', () => handlePawnClick(pawn.player as PlayerIndex, pawn.slot))
