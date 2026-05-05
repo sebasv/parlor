@@ -258,7 +258,7 @@ const game: GameModule = {
         grid-template-columns: repeat(4, 1fr);
         gap: 8px;
         width: 100%;
-        max-width: 540px;
+        max-width: min(98vw, 720px);
       }
 
       @media (max-width: 400px) {
@@ -314,7 +314,7 @@ const game: GameModule = {
         gap: 0.5rem;
         justify-content: center;
         width: 100%;
-        max-width: 540px;
+        max-width: min(98vw, 720px);
       }
 
       .set-claim-btn {

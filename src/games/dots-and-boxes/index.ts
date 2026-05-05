@@ -239,8 +239,12 @@ const game: GameModule = {
         min-width: 2ch;
       }
       .dab-svg-wrap {
-        overflow: auto;
-        max-width: 100%;
+        width: 100%;
+        max-width: min(95vw, 90vh, 700px);
+      }
+      .dab-svg {
+        width: 100%;
+        height: auto;
       }
       .dab-svg line.dab-line-drawn {
         stroke-width: 3;
@@ -381,8 +385,6 @@ const game: GameModule = {
       const height = MARGIN * 2 + (rows - 1) * CELL_SIZE
 
       svg = svgEl('svg')
-      svg.setAttribute('width', String(width))
-      svg.setAttribute('height', String(height))
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
       svg.classList.add('dab-svg')
 

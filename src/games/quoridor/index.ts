@@ -136,9 +136,14 @@ const game: GameModule = {
         cursor: not-allowed;
       }
       .qr-svg-wrap {
-        overflow: auto;
-        max-width: 100%;
+        width: 100%;
+        max-width: min(95vw, 90vh, 700px);
         touch-action: auto;
+      }
+      .qr-svg {
+        display: block;
+        width: 100%;
+        height: auto;
       }
       .qr-svg .qr-cell {
         fill: var(--bg-elev);
@@ -241,8 +246,6 @@ const game: GameModule = {
     container.appendChild(svgWrap)
 
     const svg = svgEl('svg')
-    svg.setAttribute('width', String(SVG_SIZE))
-    svg.setAttribute('height', String(SVG_SIZE))
     svg.setAttribute('viewBox', `0 0 ${SVG_SIZE} ${SVG_SIZE}`)
     svg.classList.add('qr-svg')
     svgWrap.appendChild(svg)

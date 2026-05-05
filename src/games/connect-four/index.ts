@@ -133,7 +133,7 @@ const CSS = `
   --cf-p2: #facc15;
   --cf-empty: #1e2330;
   --cf-board-bg: #2563eb;
-  --cf-cell: clamp(40px, 11vw, 70px);
+  --cf-cell: clamp(40px, 11vw, 80px);
 
   display: inline-block;
   background: var(--cf-board-bg);

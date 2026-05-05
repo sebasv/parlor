@@ -59,7 +59,11 @@ const CSS = `
   gap: 1rem;
   padding: 0.75rem;
   min-height: 100%;
-  font-size: 1rem;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  max-width: min(100%, 960px);
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ---- Pass screen ---- */
@@ -137,8 +141,8 @@ const CSS = `
   opacity: 0.7;
 }
 .hb-fw-card {
-  width: 44px;
-  height: 60px;
+  width: 2.75rem;
+  height: 3.75rem;
   border-radius: 7px;
   display: flex;
   align-items: center;
@@ -195,8 +199,8 @@ const CSS = `
   cursor: default;
 }
 .hb-card-face {
-  width: 54px;
-  height: 76px;
+  width: 3.375rem;
+  height: 4.75rem;
   border-radius: 8px;
   display: flex;
   align-items: center;

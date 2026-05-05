@@ -70,7 +70,7 @@ const game: GameModule = {
       .dr-score-item.dr-active-player .dr-score-name { color: var(--accent); }
 
       .dr-board-wrap {
-        width: min(96vw, 560px);
+        width: min(96vw, 90vh, 640px);
         aspect-ratio: 1;
       }
 

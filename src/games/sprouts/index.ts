@@ -237,11 +237,14 @@ const CSS = `
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #2a2f38;
-  max-width: 100%;
+  width: 100%;
+  max-width: min(95vw, 90vh, 720px);
 }
 
 .sp-svg {
   display: block;
+  width: 100%;
+  height: auto;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -329,8 +332,6 @@ const game: GameModule = {
     const SVG_H = 540
 
     const svg = svgEl('svg')
-    svg.setAttribute('width', String(SVG_W))
-    svg.setAttribute('height', String(SVG_H))
     svg.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`)
     svg.classList.add('sp-svg')
     canvasWrap.appendChild(svg)
