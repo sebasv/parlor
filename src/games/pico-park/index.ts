@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import { LEVELS, type LevelDef } from './levels'
 import meta from './meta'
@@ -717,7 +718,10 @@ const game: GameModule = {
     // Button wiring
     // ---------------------------------------------------------------------------
 
-    restartBtn.addEventListener('click', () => startLevel(levelIndex))
+    restartBtn.addEventListener('click', async () => {
+      if (!(await confirmDestructive())) return
+      startLevel(levelIndex)
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     nextBtn.addEventListener('click', () => {

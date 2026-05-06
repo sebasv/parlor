@@ -11,6 +11,7 @@ import { Chessground } from 'chessground'
 import type { Api } from 'chessground/api'
 import type { Config } from 'chessground/config'
 import type { Color, Dests, Key } from 'chessground/types'
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -60,6 +61,7 @@ const game: GameModule = {
 
     // chess.js is the rules engine — source of truth for legal moves, state, etc.
     let chess = new Chess()
+    let dirty = false
 
     // ---- DOM construction ----
 
@@ -369,6 +371,7 @@ const game: GameModule = {
         return
       }
 
+      dirty = true
       syncBoard()
     }
 
@@ -497,15 +500,19 @@ const game: GameModule = {
 
     // ---- New game ----
 
-    function handleNewGame() {
+    function resetGame() {
       chess = new Chess()
+      dirty = false
       cg.set(buildChessgroundConfig())
       renderStatus()
       renderPlayerTags()
       renderHistory()
     }
 
-    newGameBtn.addEventListener('click', handleNewGame)
+    newGameBtn.addEventListener('click', async () => {
+      if (dirty && !(await confirmDestructive())) return
+      resetGame()
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     // Initial render

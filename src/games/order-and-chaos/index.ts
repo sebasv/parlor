@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -242,7 +243,10 @@ function renderGame(
   btnX.addEventListener('click', handleSymbolClick)
   btnO.addEventListener('click', handleSymbolClick)
   btnConfirm.addEventListener('click', handleConfirm)
-  btnNew.addEventListener('click', handleNew)
+  btnNew.addEventListener('click', async () => {
+    if (!(await confirmDestructive())) return
+    handleNew()
+  })
   btnExit.addEventListener('click', ctx.onExit)
 
   // ── Render ────────────────────────────────────────────────────────────────

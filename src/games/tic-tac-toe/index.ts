@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -47,6 +48,7 @@ const game: GameModule = {
     let board: Board = [null, null, null, null, null, null, null, null, null]
     let currentPlayer: 0 | 1 = 0
     let gameOver = false
+    let dirty = false
 
     // --- DOM structure ---
     const container = document.createElement('div')
@@ -311,6 +313,7 @@ const game: GameModule = {
       const idx = Number(target.dataset.index)
       if (board[idx] !== null) return
 
+      dirty = true
       board[idx] = currentPlayer
       const winner = checkWinner(board)
       const full = isBoardFull(board)
@@ -324,10 +327,11 @@ const game: GameModule = {
       render()
     }
 
-    function handleNewGame() {
+    function resetGame() {
       board = [null, null, null, null, null, null, null, null, null]
       currentPlayer = 0
       gameOver = false
+      dirty = false
       render()
     }
 
@@ -335,7 +339,10 @@ const game: GameModule = {
     for (const cell of cellEls) {
       cell.addEventListener('click', handleCellClick)
     }
-    newGameBtn.addEventListener('click', handleNewGame)
+    newGameBtn.addEventListener('click', async () => {
+      if (dirty && !(await confirmDestructive())) return
+      resetGame()
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     // Mount

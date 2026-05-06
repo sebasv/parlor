@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 import { WORD_LIST } from './words'
@@ -489,6 +490,7 @@ const game: GameModule = {
     document.head.appendChild(styleEl)
 
     let state = createInitialState(players)
+    let dirty = false
 
     const wrapper = el('div', { class: 'cd-root' })
     root.appendChild(wrapper)
@@ -778,6 +780,7 @@ const game: GameModule = {
 
     function handleGuess(wordIndex: number, phase: Extract<GamePhase, { kind: 'guessing' }>): void {
       if (state.revealed[wordIndex]) return
+      dirty = true
 
       const { guesserIndex, clue, clueNumber } = phase
       const role = revealResult(wordIndex, guesserIndex, state.keyCard)
@@ -912,8 +915,10 @@ const game: GameModule = {
 
       const newGameBtn = el('button', { class: 'cd-btn cd-btn-primary', type: 'button' })
       newGameBtn.textContent = 'New game'
-      newGameBtn.addEventListener('click', () => {
+      newGameBtn.addEventListener('click', async () => {
+        if (dirty && !(await confirmDestructive())) return
         state = createInitialState(players)
+        dirty = false
         showPassScreen(
           players[0],
           `${players[0]} is the first Spymaster. Only they should see the key card.`,

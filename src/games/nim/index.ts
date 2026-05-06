@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -480,7 +481,8 @@ const game: GameModule = {
       render()
     })
 
-    newGameBtn.addEventListener('click', () => {
+    newGameBtn.addEventListener('click', async () => {
+      if (!(await confirmDestructive())) return
       state = {
         piles: [...config.piles],
         currentPlayer: 0,

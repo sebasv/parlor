@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 import {
@@ -85,6 +86,7 @@ const game: GameModule = {
     let gameOver = false
     // True while a move animation is playing — blocks all input
     let animating = false
+    let dirty = false
 
     // ---- DOM construction ----
     const style = document.createElement('style')
@@ -739,6 +741,7 @@ const game: GameModule = {
         if (move === undefined) return
 
         // Track captures
+        dirty = true
         capturedByPlayer[state.turn] += move.captured.length
 
         // Deselect and clear path lines before animating
@@ -783,7 +786,7 @@ const game: GameModule = {
       }
     }
 
-    function handleNewGame() {
+    function resetGame() {
       state = initialState()
       selectedIdx = null
       movesFromSelected = []
@@ -791,11 +794,15 @@ const game: GameModule = {
       capturedByPlayer = [0, 0]
       gameOver = false
       animating = false
+      dirty = false
       clearPathLines()
       render()
     }
 
-    newGameBtn.addEventListener('click', handleNewGame)
+    newGameBtn.addEventListener('click', async () => {
+      if (dirty && !(await confirmDestructive())) return
+      resetGame()
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     // Mount

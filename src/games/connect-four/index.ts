@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -294,6 +295,7 @@ const game: GameModule = {
     let board = createBoard()
     let currentPlayer: 1 | 2 = 1
     let gameOver = false
+    let dirty = false
 
     // Build skeleton DOM
     const wrapper = el('div', { class: 'cf-root' })
@@ -491,6 +493,7 @@ const game: GameModule = {
       const result = drop(board, col, currentPlayer)
       if (!result) return // column full
 
+      dirty = true
       animating = true
       setColBtnsDisabled(true)
 
@@ -514,10 +517,14 @@ const game: GameModule = {
       board = createBoard()
       currentPlayer = 1
       gameOver = false
+      dirty = false
       render()
     }
 
-    newGameBtn.addEventListener('click', startNewGame)
+    newGameBtn.addEventListener('click', async () => {
+      if (dirty && !(await confirmDestructive())) return
+      startNewGame()
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     // Initial render
