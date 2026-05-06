@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 import type { Action, Card, CardKnowledge, Rank, Suit } from './rules'
@@ -939,7 +940,8 @@ const game: GameModule = {
 
       const newGameBtn = el('button', { class: 'hb-btn hb-btn-primary', type: 'button' })
       newGameBtn.textContent = 'New game'
-      newGameBtn.addEventListener('click', () => {
+      newGameBtn.addEventListener('click', async () => {
+        if (!(await confirmDestructive())) return
         state = createInitialState(players.length)
         uiMode = { kind: 'idle' }
         showPassScreen(0, () => {

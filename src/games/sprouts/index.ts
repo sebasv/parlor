@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -732,7 +733,10 @@ const game: GameModule = {
     }
 
     passBtn.addEventListener('click', handlePass)
-    newGameBtn.addEventListener('click', handleNewGame)
+    newGameBtn.addEventListener('click', async () => {
+      if (!(await confirmDestructive())) return
+      handleNewGame()
+    })
     exitBtn.addEventListener('click', ctx.onExit)
 
     // Initial render

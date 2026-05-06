@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 import {
@@ -136,6 +137,7 @@ const game: GameModule = {
     // All legal moves given current dice
     let allMoves: Move[] = []
     let gameOver = false
+    let dirty = false
 
     // ---- Style ----
     const style = document.createElement('style')
@@ -1018,6 +1020,7 @@ const game: GameModule = {
 
     rollBtn.addEventListener('click', () => {
       if (state.rolled || gameOver) return
+      dirty = true
       const rolled = rollDice()
       state = { ...state, dice: rolled, rolled: true }
       clearSelection()
@@ -1038,12 +1041,14 @@ const game: GameModule = {
       render()
     })
 
-    newGameBtn.addEventListener('click', () => {
+    newGameBtn.addEventListener('click', async () => {
+      if (dirty && !(await confirmDestructive())) return
       state = initialState()
       clearSelection()
       gameOver = false
       allMoves = []
       animating = false
+      dirty = false
       render()
     })
 

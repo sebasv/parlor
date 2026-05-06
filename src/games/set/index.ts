@@ -1,3 +1,4 @@
+import { confirmDestructive } from '../../lib/confirm'
 import type { GameModule } from '../../lib/game'
 import meta from './meta'
 
@@ -874,7 +875,8 @@ const game: GameModule = {
     confirmBtn.addEventListener('click', confirmClaim)
     cancelBtn.addEventListener('click', cancelClaim)
 
-    newGameBtn.addEventListener('click', () => {
+    newGameBtn.addEventListener('click', async () => {
+      if (!(await confirmDestructive())) return
       stopCountdown()
       if (statusTimeout !== null) clearTimeout(statusTimeout)
 
