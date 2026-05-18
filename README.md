@@ -1,6 +1,6 @@
-# Vermeulen Games
+# Parlor Games
 
-A small SPA/PWA with a collection of local-multiplayer games (concurrent and hot-seat) for tablet play. Personal project, not built for a general audience.
+A small SPA/PWA with a collection of local-multiplayer games (concurrent and hot-seat) for tablet play.
 
 ## Stack
 
@@ -74,19 +74,3 @@ pnpm preview      # Serve dist/ locally
 pnpm check        # Biome lint + format check
 pnpm check:fix    # Auto-fix
 ```
-
-## Hosting (Cloudflare Pages)
-
-The app is fully static. One-time setup:
-
-1. Push to GitHub (already wired up).
-2. <https://dash.cloudflare.com> → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-3. Select the `vermeulen-games` repo.
-4. Build settings:
-   - **Framework preset:** Vite
-   - **Build command:** `pnpm build`
-   - **Build output directory:** `dist`
-   - **Node version:** 24 (set via `NODE_VERSION` env var if needed)
-5. Deploy. Subsequent pushes to `main` auto-deploy.
-
-Custom domain can be wired under the Pages project's **Custom domains** tab.
