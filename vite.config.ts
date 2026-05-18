@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Vermeulen Games',
-        short_name: 'VG',
+        name: 'Parlor Games',
+        short_name: 'PG',
         description: 'A collection of local-multiplayer games for the Vermeulen kids.',
         theme_color: '#0f1115',
         background_color: '#0f1115',

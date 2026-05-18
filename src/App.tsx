@@ -97,7 +97,7 @@ export default function App() {
         fallback={
           <>
             <header class="app-header">
-              <h1>Vermeulen Games</h1>
+              <h1>Parlor Games</h1>
             </header>
             <PlayerRoster players={players} setPlayers={setPlayers} />
             <GamePicker playerCount={() => players().length} onPick={pick} />
