@@ -2,7 +2,7 @@
 
 ## Overview
 
-Vanilla TypeScript + DOM implementation of Connect Four for the Vermeulen Games shell.
+Vanilla TypeScript + DOM implementation of Connect Four for the Parlor Games shell.
 No external dependencies beyond the project's existing stack.
 
 ---
