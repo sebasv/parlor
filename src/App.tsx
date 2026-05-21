@@ -1,10 +1,12 @@
-import { createSignal, onCleanup, onMount, Show } from 'solid-js'
+import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { GameEntry, Locale } from './lib/game'
+import { tryLockOrientation } from './lib/orientation'
+import { shuffled } from './lib/shuffle'
 import { loadLocale, loadPlayers, saveLocale } from './lib/storage'
 import { ConfirmDialog } from './shell/ConfirmDialog'
 import { GameHost } from './shell/GameHost'
 import { GamePicker } from './shell/GamePicker'
-import { OrientationGuard } from './shell/OrientationGuard'
+import { MetaMenu } from './shell/MetaMenu'
 import { PlayerRoster } from './shell/PlayerRoster'
 import { RulesScreen } from './shell/RulesScreen'
 
@@ -34,6 +36,9 @@ const CONFIRM_LABELS: Record<
 export default function App() {
   const [players, setPlayers] = createSignal<readonly string[]>(loadPlayers())
   const [active, setActive] = createSignal<GameEntry | null>(null)
+  // Order passed to the game; reshuffled on every pick so the starting player
+  // (== gamePlayers()[0]) rotates randomly.
+  const [gamePlayers, setGamePlayers] = createSignal<readonly string[]>([])
   const [showRules, setShowRules] = createSignal(false)
   const [confirmExit, setConfirmExit] = createSignal(false)
   const [locale, setLocaleSig] = createSignal<Locale>(loadLocale())
@@ -50,6 +55,7 @@ export default function App() {
   }
 
   const pick = (entry: GameEntry) => {
+    setGamePlayers(shuffled(players()))
     setActive(entry)
     setShowRules(Boolean(entry.rules))
     pushHistoryMark()
@@ -87,6 +93,14 @@ export default function App() {
     onCleanup(() => window.removeEventListener('popstate', handler))
   })
 
+  // Best-effort orientation lock when a game has a preference. Silently
+  // ignored on browsers that don't support it (notably iOS) — CSS handles
+  // either orientation, no rotate-nag overlay.
+  createEffect(() => {
+    const target = active()?.preferredOrientation
+    if (target) tryLockOrientation(target)
+  })
+
   const labels = () => CONFIRM_LABELS[locale()]
   const inGame = () => active() !== null
 
@@ -98,6 +112,7 @@ export default function App() {
           <>
             <header class="app-header">
               <h1>Parlor Games</h1>
+              <MetaMenu locale={locale} />
             </header>
             <PlayerRoster players={players} setPlayers={setPlayers} />
             <GamePicker playerCount={() => players().length} onPick={pick} />
@@ -110,7 +125,7 @@ export default function App() {
           return (
             <GameHost
               entry={entry}
-              players={players()}
+              players={gamePlayers()}
               onExit={requestExit}
               onShowRules={entry.rules ? () => setShowRules(true) : undefined}
             />
@@ -145,8 +160,6 @@ export default function App() {
         onConfirm={exitToPicker}
         onCancel={() => setConfirmExit(false)}
       />
-
-      <OrientationGuard preferred={() => active()?.preferredOrientation ?? null} />
     </main>
   )
 }

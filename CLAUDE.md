@@ -67,8 +67,11 @@ not with the canonical board-game spec.
 `GameMeta` (in `src/lib/game.ts`) supports several optional fields a game can
 populate:
 
-- `preferredOrientation: 'portrait' | 'landscape'` — the shell shows a rotate
-  overlay until the device matches, and tries `screen.orientation.lock()`.
+- `preferredOrientation: 'portrait' | 'landscape'` — the shell makes a
+  best-effort `screen.orientation.lock()` attempt (works in installed-PWA /
+  fullscreen on supporting browsers; silently noops on iOS Safari). There is
+  no rotate-nag overlay — games must keep their layouts usable in either
+  orientation.
 - `rules: Record<Locale, RulesContent>` — bilingual how-to-play content shown
   in an overlay before the game starts and re-openable via `?` mid-game.
 
