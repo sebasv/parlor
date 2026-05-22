@@ -137,6 +137,41 @@ input[type="text"] {
   text-align: center;
 }
 
+.feedback-form {
+  max-width: 32rem;
+}
+
+.feedback-textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid #2a2f38;
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.7em 0.9em;
+  width: 100%;
+  resize: vertical;
+  min-height: 6em;
+}
+
+.feedback-textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.feedback-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.feedback-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.9em;
+}
+
 .roster-list {
   list-style: none;
   padding: 0;

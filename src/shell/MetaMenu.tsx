@@ -2,13 +2,11 @@ import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { Locale } from '../lib/game'
 import { createInstallPrompt, isIos, isStandalone } from '../lib/install'
 
-// Ko-fi handle: update if the page lives at a different URL.
-const KOFI_URL = 'https://ko-fi.com/sebasv'
+const KOFI_URL = 'https://ko-fi.com/vqiio'
 
-// Feedback inbox. Stays a mailto: so the project keeps zero third-party
-// dependencies; swap to a hosted form (Formspree, Tally, Web3Forms, or a
-// Cloudflare Worker endpoint) by changing this href alone.
-const FEEDBACK_EMAIL = 'mail@sebastiaanvermeulen.nl'
+// Netlify Forms: a matching hidden static form lives in index.html so Netlify
+// detects it at build time. Submissions are URL-encoded POSTs to '/'.
+const FEEDBACK_FORM_NAME = 'feedback'
 
 interface Labels {
   open: string
@@ -17,7 +15,12 @@ interface Labels {
   share: string
   shareText: string
   feedback: string
-  feedbackSubject: string
+  feedbackTitle: string
+  feedbackPlaceholder: string
+  feedbackSubmit: string
+  feedbackSent: string
+  feedbackError: string
+  cancel: string
   install: string
   installIos: string
   installIosBody: string
@@ -32,7 +35,12 @@ const LABELS: Record<Locale, Labels> = {
     share: 'Share',
     shareText: 'Parlor Games — a collection of local-multiplayer games.',
     feedback: 'Send feedback',
-    feedbackSubject: 'Parlor Games feedback',
+    feedbackTitle: 'Send feedback',
+    feedbackPlaceholder: 'What worked, what did not, what would you like to see?',
+    feedbackSubmit: 'Send',
+    feedbackSent: 'Thanks! Your feedback was sent.',
+    feedbackError: 'Could not send. Please try again later.',
+    cancel: 'Cancel',
     install: 'Install app',
     installIos: 'Install on iPhone or iPad',
     installIosBody: 'Tap the Share button in Safari, then choose "Add to Home Screen".',
@@ -45,7 +53,12 @@ const LABELS: Record<Locale, Labels> = {
     share: 'Delen',
     shareText: 'Parlor Games — een verzameling lokale multiplayerspellen.',
     feedback: 'Stuur feedback',
-    feedbackSubject: 'Parlor Games feedback',
+    feedbackTitle: 'Stuur feedback',
+    feedbackPlaceholder: 'Wat ging goed, wat niet, wat zou je willen zien?',
+    feedbackSubmit: 'Versturen',
+    feedbackSent: 'Bedankt! Je feedback is verstuurd.',
+    feedbackError: 'Versturen mislukt. Probeer het later opnieuw.',
+    cancel: 'Annuleren',
     install: 'App installeren',
     installIos: 'Installeren op iPhone of iPad',
     installIosBody: 'Tik op de Deelknop in Safari en kies daarna "Zet op beginscherm".',
@@ -57,18 +70,27 @@ interface Props {
   locale: () => Locale
 }
 
+type FeedbackStatus = 'idle' | 'sending' | 'sent' | 'error'
+
 export function MetaMenu(props: Props) {
   const [open, setOpen] = createSignal(false)
   const [iosHint, setIosHint] = createSignal(false)
+  const [feedbackOpen, setFeedbackOpen] = createSignal(false)
+  const [feedbackText, setFeedbackText] = createSignal('')
+  const [feedbackStatus, setFeedbackStatus] = createSignal<FeedbackStatus>('idle')
   const install = createInstallPrompt()
   const labels = () => LABELS[props.locale()]
 
   let dialog: HTMLDivElement | undefined
+  // Honeypot: a real user never fills this. Bots that auto-fill every input
+  // populate it and Netlify silently drops the submission.
+  let honeypot = ''
 
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIosHint(false)
+        setFeedbackOpen(false)
         setOpen(false)
       }
     }
@@ -122,9 +144,40 @@ export function MetaMenu(props: Props) {
     return install.available() || isIos()
   }
 
-  const feedbackHref = () => {
-    const subject = encodeURIComponent(labels().feedbackSubject)
-    return `mailto:${FEEDBACK_EMAIL}?subject=${subject}`
+  const openFeedback = () => {
+    setOpen(false)
+    setFeedbackText('')
+    setFeedbackStatus('idle')
+    honeypot = ''
+    setFeedbackOpen(true)
+  }
+
+  const closeFeedback = () => {
+    setFeedbackOpen(false)
+  }
+
+  const submitFeedback = async (e: Event) => {
+    e.preventDefault()
+    const message = feedbackText().trim()
+    if (!message) return
+    setFeedbackStatus('sending')
+    const body = new URLSearchParams({
+      'form-name': FEEDBACK_FORM_NAME,
+      'bot-field': honeypot,
+      locale: props.locale(),
+      message,
+    }).toString()
+    try {
+      const res = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setFeedbackStatus('sent')
+    } catch {
+      setFeedbackStatus('error')
+    }
   }
 
   return (
@@ -158,14 +211,9 @@ export function MetaMenu(props: Props) {
           <button type="button" class="meta-menu-item" role="menuitem" onClick={share}>
             {labels().share}
           </button>
-          <a
-            class="meta-menu-item"
-            role="menuitem"
-            href={feedbackHref()}
-            onClick={() => setOpen(false)}
-          >
+          <button type="button" class="meta-menu-item" role="menuitem" onClick={openFeedback}>
             {labels().feedback}
-          </a>
+          </button>
           <Show when={showInstall()}>
             <button type="button" class="meta-menu-item" role="menuitem" onClick={triggerInstall}>
               {labels().install}
@@ -191,6 +239,75 @@ export function MetaMenu(props: Props) {
               </button>
             </div>
           </div>
+        </div>
+      </Show>
+
+      <Show when={feedbackOpen()}>
+        <div class="confirm-backdrop">
+          <form
+            class="confirm-dialog feedback-form"
+            onSubmit={submitFeedback}
+            role="dialog"
+            aria-modal="true"
+            aria-label={labels().feedbackTitle}
+          >
+            <h3>{labels().feedbackTitle}</h3>
+            <Show
+              when={feedbackStatus() !== 'sent'}
+              fallback={
+                <>
+                  <p>{labels().feedbackSent}</p>
+                  <div class="confirm-actions">
+                    <button type="button" class="confirm-ok" onClick={closeFeedback}>
+                      {labels().close}
+                    </button>
+                  </div>
+                </>
+              }
+            >
+              <textarea
+                class="feedback-textarea"
+                rows="5"
+                required
+                placeholder={labels().feedbackPlaceholder}
+                value={feedbackText()}
+                onInput={(e) => setFeedbackText(e.currentTarget.value)}
+                disabled={feedbackStatus() === 'sending'}
+              />
+              {/* Honeypot input: visually hidden, never tabbable. */}
+              <label class="feedback-honeypot" aria-hidden="true">
+                Do not fill this field
+                <input
+                  type="text"
+                  tabIndex={-1}
+                  autocomplete="off"
+                  onInput={(e) => {
+                    honeypot = e.currentTarget.value
+                  }}
+                />
+              </label>
+              <Show when={feedbackStatus() === 'error'}>
+                <p class="feedback-error">{labels().feedbackError}</p>
+              </Show>
+              <div class="confirm-actions">
+                <button
+                  type="button"
+                  class="confirm-cancel"
+                  onClick={closeFeedback}
+                  disabled={feedbackStatus() === 'sending'}
+                >
+                  {labels().cancel}
+                </button>
+                <button
+                  type="submit"
+                  class="confirm-ok"
+                  disabled={feedbackStatus() === 'sending' || !feedbackText().trim()}
+                >
+                  {labels().feedbackSubmit}
+                </button>
+              </div>
+            </Show>
+          </form>
         </div>
       </Show>
     </div>
