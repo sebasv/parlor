@@ -14,6 +14,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      Static form for Netlify Forms build-time detection. The runtime UI in
+      MetaMenu.tsx posts URL-encoded data to '/' with form-name=feedback.
+    -->
+    <form name="feedback" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="bot-field" />
+      <input type="text" name="locale" />
+      <textarea name="message"></textarea>
+    </form>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

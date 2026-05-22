@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:netlify": "pnpm dlx netlify-cli dev",
     "build": "tsc -b && vite build",
-    "preview": "pnpm run build && wrangler dev",
+    "preview": "pnpm run build && vite preview",
     "check": "biome check",
-    "check:fix": "biome check --write",
-    "deploy": "pnpm run build && wrangler deploy"
+    "check:fix": "biome check --write"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
@@ -23,7 +23,6 @@
     "vite": "^8.0.10",
     "vite-plugin-pwa": "^1.0.4",
     "vite-plugin-solid": "^2.11.12",
-    "workbox-window": "^7.4.1",
-    "wrangler": "^4.88.0"
+    "workbox-window": "^7.4.1"
   }
 }
