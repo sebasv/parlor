@@ -6,6 +6,7 @@ import { loadLocale, loadPlayers, saveLocale } from './lib/storage'
 import { ConfirmDialog } from './shell/ConfirmDialog'
 import { GameHost } from './shell/GameHost'
 import { GamePicker } from './shell/GamePicker'
+import { LocaleToggle } from './shell/LocaleToggle'
 import { MetaMenu } from './shell/MetaMenu'
 import { PlayerRoster } from './shell/PlayerRoster'
 import { RulesScreen } from './shell/RulesScreen'
@@ -112,6 +113,7 @@ export default function App() {
           <>
             <header class="app-header">
               <h1>Parlor Games</h1>
+              <LocaleToggle locale={locale} setLocale={setLocale} />
               <MetaMenu locale={locale} />
             </header>
             <PlayerRoster players={players} setPlayers={setPlayers} />

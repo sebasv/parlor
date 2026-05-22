@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js'
-import { type GameEntry, LOCALE_LABELS, LOCALES, type Locale, type RulesContent } from '../lib/game'
+import type { GameEntry, Locale, RulesContent } from '../lib/game'
+import { LocaleToggle } from './LocaleToggle'
 
 interface Props {
   entry: GameEntry
@@ -38,22 +39,7 @@ export function RulesScreen(props: Props) {
           ←
         </button>
         <h2>{content()?.title ?? props.entry.title}</h2>
-        <fieldset class="rules-locale">
-          <legend class="rules-locale-legend">Language</legend>
-          <For each={LOCALES}>
-            {(l) => (
-              <button
-                type="button"
-                class="rules-locale-btn"
-                aria-pressed={props.locale() === l}
-                data-active={props.locale() === l}
-                onClick={() => props.setLocale(l)}
-              >
-                {LOCALE_LABELS[l]}
-              </button>
-            )}
-          </For>
-        </fieldset>
+        <LocaleToggle locale={props.locale} setLocale={props.setLocale} />
       </header>
 
       <div class="rules-body">
