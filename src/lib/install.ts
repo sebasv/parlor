@@ -26,6 +26,15 @@ export function isIos(): boolean {
   return ua.includes('Macintosh') && navigator.maxTouchPoints > 1
 }
 
+// Firefox does not implement beforeinstallprompt, but Firefox on Android does
+// expose an "Install app" item in its own menu for valid PWAs. We can't trigger
+// it from JS — we can only point the user at it.
+export function isFirefoxMobile(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  return /Firefox/.test(ua) && /Mobile|Android/.test(ua)
+}
+
 export function createInstallPrompt() {
   const [available, setAvailable] = createSignal(false)
   let deferred: BeforeInstallPromptEvent | null = null

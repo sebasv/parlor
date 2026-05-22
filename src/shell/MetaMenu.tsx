@@ -1,6 +1,6 @@
 import { createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { Locale } from '../lib/game'
-import { createInstallPrompt, isIos, isStandalone } from '../lib/install'
+import { createInstallPrompt, isFirefoxMobile, isIos, isStandalone } from '../lib/install'
 
 const KOFI_URL = 'https://ko-fi.com/vqiio'
 
@@ -25,6 +25,8 @@ interface Labels {
   install: string
   installIos: string
   installIosBody: string
+  installFirefox: string
+  installFirefoxBody: string
   promise: string
 }
 
@@ -46,6 +48,9 @@ const LABELS: Record<Locale, Labels> = {
     install: 'Install app',
     installIos: 'Install on iPhone or iPad',
     installIosBody: 'Tap the Share button in Safari, then choose "Add to Home Screen".',
+    installFirefox: 'Install via Firefox menu',
+    installFirefoxBody:
+      'Open the menu (three dots, top right) and tap "Install app". Firefox does not let websites trigger this directly.',
     promise: 'No ads. No tracking. No in-app purchases.',
   },
   nl: {
@@ -65,6 +70,9 @@ const LABELS: Record<Locale, Labels> = {
     install: 'App installeren',
     installIos: 'Installeren op iPhone of iPad',
     installIosBody: 'Tik op de Deelknop in Safari en kies daarna "Zet op beginscherm".',
+    installFirefox: 'Installeren via Firefox-menu',
+    installFirefoxBody:
+      'Open het menu (drie puntjes, rechtsboven) en tik op "App installeren". Firefox laat websites dit niet zelf openen.',
     promise: 'Geen advertenties. Geen tracking. Geen in-app aankopen.',
   },
 }
@@ -78,6 +86,7 @@ type FeedbackStatus = 'idle' | 'sending' | 'sent' | 'error'
 export function MetaMenu(props: Props) {
   const [open, setOpen] = createSignal(false)
   const [iosHint, setIosHint] = createSignal(false)
+  const [firefoxHint, setFirefoxHint] = createSignal(false)
   const [copiedToast, setCopiedToast] = createSignal(false)
   const [feedbackOpen, setFeedbackOpen] = createSignal(false)
   const [feedbackText, setFeedbackText] = createSignal('')
@@ -95,6 +104,7 @@ export function MetaMenu(props: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIosHint(false)
+        setFirefoxHint(false)
         setFeedbackOpen(false)
         setOpen(false)
       }
@@ -140,8 +150,13 @@ export function MetaMenu(props: Props) {
   }
 
   const triggerInstall = async () => {
-    if (isIos() && !isStandalone()) {
+    if (isStandalone()) return
+    if (isIos()) {
       setIosHint(true)
+      return
+    }
+    if (isFirefoxMobile() && !install.available()) {
+      setFirefoxHint(true)
       return
     }
     await install.prompt()
@@ -150,7 +165,7 @@ export function MetaMenu(props: Props) {
 
   const showInstall = () => {
     if (isStandalone()) return false
-    return install.available() || isIos()
+    return install.available() || isIos() || isFirefoxMobile()
   }
 
   const openFeedback = () => {
@@ -248,6 +263,25 @@ export function MetaMenu(props: Props) {
             <p>{labels().installIosBody}</p>
             <div class="confirm-actions">
               <button type="button" class="confirm-ok" onClick={() => setIosHint(false)}>
+                {labels().close}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      <Show when={firefoxHint()}>
+        <div class="confirm-backdrop">
+          <div
+            class="confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-label={labels().installFirefox}
+          >
+            <h3>{labels().installFirefox}</h3>
+            <p>{labels().installFirefoxBody}</p>
+            <div class="confirm-actions">
+              <button type="button" class="confirm-ok" onClick={() => setFirefoxHint(false)}>
                 {labels().close}
               </button>
             </div>
