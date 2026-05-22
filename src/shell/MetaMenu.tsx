@@ -24,8 +24,6 @@ interface Labels {
   install: string
   installIos: string
   installIosBody: string
-  installUnsupportedTitle: string
-  installUnsupportedBody: string
   promise: string
 }
 
@@ -46,9 +44,6 @@ const LABELS: Record<Locale, Labels> = {
     install: 'Install app',
     installIos: 'Install on iPhone or iPad',
     installIosBody: 'Tap the Share button in Safari, then choose "Add to Home Screen".',
-    installUnsupportedTitle: 'Install not available',
-    installUnsupportedBody:
-      'Your browser does not offer one-tap install. Try Chrome, Edge, or Brave on Android or desktop, or open this page in Safari on iPhone or iPad.',
     promise: 'No ads. No tracking. No in-app purchases.',
   },
   nl: {
@@ -67,9 +62,6 @@ const LABELS: Record<Locale, Labels> = {
     install: 'App installeren',
     installIos: 'Installeren op iPhone of iPad',
     installIosBody: 'Tik op de Deelknop in Safari en kies daarna "Zet op beginscherm".',
-    installUnsupportedTitle: 'Installeren niet beschikbaar',
-    installUnsupportedBody:
-      'Je browser biedt geen één-tik installatie. Probeer Chrome, Edge of Brave op Android of desktop, of open deze pagina in Safari op iPhone of iPad.',
     promise: 'Geen advertenties. Geen tracking. Geen in-app aankopen.',
   },
 }
@@ -83,7 +75,6 @@ type FeedbackStatus = 'idle' | 'sending' | 'sent' | 'error'
 export function MetaMenu(props: Props) {
   const [open, setOpen] = createSignal(false)
   const [iosHint, setIosHint] = createSignal(false)
-  const [unsupportedHint, setUnsupportedHint] = createSignal(false)
   const [feedbackOpen, setFeedbackOpen] = createSignal(false)
   const [feedbackText, setFeedbackText] = createSignal('')
   const [feedbackStatus, setFeedbackStatus] = createSignal<FeedbackStatus>('idle')
@@ -99,7 +90,6 @@ export function MetaMenu(props: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIosHint(false)
-        setUnsupportedHint(false)
         setFeedbackOpen(false)
         setOpen(false)
       }
@@ -141,24 +131,18 @@ export function MetaMenu(props: Props) {
   }
 
   const triggerInstall = async () => {
-    if (isStandalone()) return
-    if (isIos()) {
+    if (isIos() && !isStandalone()) {
       setIosHint(true)
       return
     }
-    if (install.available()) {
-      const outcome = await install.prompt()
-      if (outcome === 'unavailable') setUnsupportedHint(true)
-      else setOpen(false)
-      return
-    }
-    setUnsupportedHint(true)
+    await install.prompt()
+    setOpen(false)
   }
 
-  // The button stays visible whenever the app isn't already installed, so the
-  // affordance is discoverable even on browsers that don't fire
-  // beforeinstallprompt — clicking then explains why install isn't available.
-  const showInstall = () => !isStandalone()
+  const showInstall = () => {
+    if (isStandalone()) return false
+    return install.available() || isIos()
+  }
 
   const openFeedback = () => {
     setOpen(false)
@@ -255,25 +239,6 @@ export function MetaMenu(props: Props) {
             <p>{labels().installIosBody}</p>
             <div class="confirm-actions">
               <button type="button" class="confirm-ok" onClick={() => setIosHint(false)}>
-                {labels().close}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Show>
-
-      <Show when={unsupportedHint()}>
-        <div class="confirm-backdrop">
-          <div
-            class="confirm-dialog"
-            role="alertdialog"
-            aria-modal="true"
-            aria-label={labels().installUnsupportedTitle}
-          >
-            <h3>{labels().installUnsupportedTitle}</h3>
-            <p>{labels().installUnsupportedBody}</p>
-            <div class="confirm-actions">
-              <button type="button" class="confirm-ok" onClick={() => setUnsupportedHint(false)}>
                 {labels().close}
               </button>
             </div>

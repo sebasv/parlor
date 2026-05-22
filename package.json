@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:netlify": "pnpm dlx netlify-cli dev",
     "build": "tsc -b && vite build",
     "preview": "pnpm run build && vite preview",
     "check": "biome check",

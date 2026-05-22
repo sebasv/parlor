@@ -69,8 +69,13 @@ Each game's `meta.ts` may include an optional `rules: Record<Locale, RulesConten
 
 ```bash
 pnpm dev          # Vite dev server with HMR
+pnpm dev:netlify  # Same, wrapped in `netlify dev` (use to exercise Netlify Forms locally)
 pnpm build        # Type-check + production build → dist/
 pnpm preview      # Serve dist/ locally
 pnpm check        # Biome lint + format check
 pnpm check:fix    # Auto-fix
 ```
+
+`pnpm dev:netlify` fetches the Netlify CLI on demand via `pnpm dlx`, so
+no entry is added to `devDependencies`. First run will be slower while
+the CLI is cached.
