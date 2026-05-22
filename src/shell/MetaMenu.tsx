@@ -14,6 +14,7 @@ interface Labels {
   coffee: string
   share: string
   shareText: string
+  shareCopied: string
   feedback: string
   feedbackTitle: string
   feedbackPlaceholder: string
@@ -34,6 +35,7 @@ const LABELS: Record<Locale, Labels> = {
     coffee: 'Buy me a coffee',
     share: 'Share',
     shareText: 'Parlor Games — a collection of local-multiplayer games.',
+    shareCopied: 'Link copied',
     feedback: 'Send feedback',
     feedbackTitle: 'Send feedback',
     feedbackPlaceholder: 'What worked, what did not, what would you like to see?',
@@ -52,6 +54,7 @@ const LABELS: Record<Locale, Labels> = {
     coffee: 'Trakteer op een koffie',
     share: 'Delen',
     shareText: 'Parlor Games — een verzameling lokale multiplayerspellen.',
+    shareCopied: 'Link gekopieerd',
     feedback: 'Stuur feedback',
     feedbackTitle: 'Stuur feedback',
     feedbackPlaceholder: 'Wat ging goed, wat niet, wat zou je willen zien?',
@@ -75,6 +78,7 @@ type FeedbackStatus = 'idle' | 'sending' | 'sent' | 'error'
 export function MetaMenu(props: Props) {
   const [open, setOpen] = createSignal(false)
   const [iosHint, setIosHint] = createSignal(false)
+  const [copiedToast, setCopiedToast] = createSignal(false)
   const [feedbackOpen, setFeedbackOpen] = createSignal(false)
   const [feedbackText, setFeedbackText] = createSignal('')
   const [feedbackStatus, setFeedbackStatus] = createSignal<FeedbackStatus>('idle')
@@ -82,6 +86,7 @@ export function MetaMenu(props: Props) {
   const labels = () => LABELS[props.locale()]
 
   let dialog: HTMLDivElement | undefined
+  let toastTimer: number | undefined
   // Honeypot: a real user never fills this. Bots that auto-fill every input
   // populate it and Netlify silently drops the submission.
   let honeypot = ''
@@ -105,6 +110,7 @@ export function MetaMenu(props: Props) {
     onCleanup(() => {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('pointerdown', onClickAway)
+      if (toastTimer !== undefined) clearTimeout(toastTimer)
     })
   })
 
@@ -123,6 +129,9 @@ export function MetaMenu(props: Props) {
     } else {
       try {
         await navigator.clipboard.writeText(url)
+        if (toastTimer !== undefined) clearTimeout(toastTimer)
+        setCopiedToast(true)
+        toastTimer = window.setTimeout(() => setCopiedToast(false), 2000)
       } catch {
         /* clipboard blocked — silently degrade */
       }
@@ -243,6 +252,12 @@ export function MetaMenu(props: Props) {
               </button>
             </div>
           </div>
+        </div>
+      </Show>
+
+      <Show when={copiedToast()}>
+        <div class="share-toast" role="status" aria-live="polite">
+          {labels().shareCopied}
         </div>
       </Show>
 
