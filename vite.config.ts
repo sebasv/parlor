@@ -7,7 +7,7 @@ export default defineConfig({
     solid(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-maskable.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Parlor Games',
         short_name: 'PG',
@@ -22,6 +22,18 @@ export default defineConfig({
             src: 'favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: 'pwa-maskable.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
+          },
+          {
+            src: 'apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
             purpose: 'any',
           },
         ],
