@@ -32,4 +32,4 @@ export const games: readonly GameEntry[] = Object.entries(metas)
       thumbnail,
     }
   })
-  .sort((a, b) => a.title.localeCompare(b.title))
+  .sort((a, b) => a.title.en.localeCompare(b.title.en))

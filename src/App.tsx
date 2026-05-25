@@ -116,8 +116,8 @@ export default function App() {
               <LocaleToggle locale={locale} setLocale={setLocale} />
               <MetaMenu locale={locale} />
             </header>
-            <PlayerRoster players={players} setPlayers={setPlayers} />
-            <GamePicker playerCount={() => players().length} onPick={pick} />
+            <PlayerRoster players={players} setPlayers={setPlayers} locale={locale} />
+            <GamePicker playerCount={() => players().length} locale={locale} onPick={pick} />
           </>
         }
       >
@@ -128,6 +128,7 @@ export default function App() {
             <GameHost
               entry={entry}
               players={gamePlayers()}
+              locale={locale}
               onExit={requestExit}
               onShowRules={entry.rules ? () => setShowRules(true) : undefined}
             />

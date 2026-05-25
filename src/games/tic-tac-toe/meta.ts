@@ -2,9 +2,11 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'tic-tac-toe',
-  title: 'Tic-Tac-Toe',
-  description:
-    'Two players take turns marking X or O on a 3x3 grid. First to get three in a row wins.',
+  title: { en: 'Tic-Tac-Toe', nl: 'Boter, kaas en eieren' },
+  description: {
+    en: 'Two players take turns marking X or O on a 3x3 grid. First to get three in a row wins.',
+    nl: 'Twee spelers zetten om de beurt een X of een O in een 3×3 rooster. Wie als eerste drie op een rij heeft, wint.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

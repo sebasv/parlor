@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'connect-four',
-  title: 'Connect Four',
+  title: { en: 'Connect Four', nl: 'Vier op een rij' },
   preferredOrientation: 'portrait',
-  description:
-    'Drop coloured discs into a 7-column grid. First to line up four in a row — horizontally, vertically, or diagonally — wins.',
+  description: {
+    en: 'Drop coloured discs into a 7-column grid. First to line up four in a row — horizontally, vertically, or diagonally — wins.',
+    nl: 'Laat gekleurde schijven in een raster van 7 kolommen vallen. Wie als eerste vier op een rij krijgt — horizontaal, verticaal of diagonaal — wint.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

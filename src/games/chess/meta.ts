@@ -2,9 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'chess',
-  title: 'Chess',
+  title: { en: 'Chess', nl: 'Schaken' },
   preferredOrientation: 'landscape',
-  description: 'Classic two-player chess with legal-move highlighting. Pass and play.',
+  description: {
+    en: 'Classic two-player chess with legal-move highlighting. Pass and play.',
+    nl: 'Klassiek schaken voor twee, met markering van toegestane zetten. Pas-en-speel.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

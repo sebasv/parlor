@@ -2,8 +2,11 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'placeholder',
-  title: 'Placeholder',
-  description: 'Hello-world game used to verify the shell wiring.',
+  title: { en: 'Placeholder', nl: 'Placeholder' },
+  description: {
+    en: 'Hello-world game used to verify the shell wiring.',
+    nl: 'Hallo-wereld-spel om de schermbedrading te controleren.',
+  },
   minPlayers: 1,
   maxPlayers: 8,
   rules: {

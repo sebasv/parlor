@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'hex',
-  title: 'Hex',
+  title: { en: 'Hex', nl: 'Hex' },
   preferredOrientation: 'landscape',
-  description:
-    'Claim hexes and connect your two opposite edges. 2 players on a rhombus board; 3 players on a hexagonal board. Cannot end in a draw (2-player only).',
+  description: {
+    en: 'Claim hexes and connect your two opposite edges. 2 players on a rhombus board; 3 players on a hexagonal board. Cannot end in a draw (2-player only).',
+    nl: 'Claim zeshoeken en verbind je twee tegenoverliggende randen. 2 spelers op een ruitvormig bord; 3 spelers op een zeshoekig bord. Kan niet in gelijkspel eindigen (alleen bij 2 spelers).',
+  },
   minPlayers: 2,
   maxPlayers: 3,
   rules: {

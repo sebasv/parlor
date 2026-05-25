@@ -22,8 +22,8 @@ export interface RulesContent {
 
 export interface GameMeta {
   readonly id: string
-  readonly title: string
-  readonly description: string
+  readonly title: Readonly<Record<Locale, string>>
+  readonly description: Readonly<Record<Locale, string>>
   readonly minPlayers: number
   readonly maxPlayers: number
   /** Preferred device orientation. The shell shows a "rotate" overlay if mismatched. */

@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'codenames-duet',
-  title: 'Codenames Duet',
+  title: { en: 'Codenames Duet', nl: 'Codenames Duet' },
   preferredOrientation: 'landscape',
-  description:
-    'Co-op word game. Two players share a 5x5 grid but each hold a secret key card showing which words are agents, neutral, or dangerous. Take turns giving one-word clues to help your partner find the right words — without hitting the assassin.',
+  description: {
+    en: 'Co-op word game. Two players share a 5x5 grid but each hold a secret key card showing which words are agents, neutral, or dangerous. Take turns giving one-word clues to help your partner find the right words — without hitting the assassin.',
+    nl: 'Coöperatief woordspel. Twee spelers delen één 5×5 rooster, maar hebben elk een eigen sleutelkaart die laat zien welke woorden agent, neutraal of gevaarlijk zijn. Geef om beurten een hint van één woord zodat je partner de juiste woorden raadt — zonder de huurmoordenaar te raken.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

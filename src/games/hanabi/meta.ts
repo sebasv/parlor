@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'hanabi',
-  title: 'Hanabi',
+  title: { en: 'Hanabi', nl: 'Hanabi' },
   preferredOrientation: 'landscape',
-  description:
-    "Co-op fireworks card game. Play numbered cards in order across five colored suits — but you hold your hand facing outward, so you see everyone else's cards but never your own.",
+  description: {
+    en: "Co-op fireworks card game. Play numbered cards in order across five colored suits — but you hold your hand facing outward, so you see everyone else's cards but never your own.",
+    nl: 'Coöperatief vuurwerk-kaartspel. Speel genummerde kaarten in de juiste volgorde in vijf kleuren — maar je houdt je kaarten naar buiten, dus je ziet die van iedereen behalve je eigen.',
+  },
   minPlayers: 2,
   maxPlayers: 5,
   rules: {

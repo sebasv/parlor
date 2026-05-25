@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'dots-and-boxes',
-  title: 'Dots and Boxes',
+  title: { en: 'Dots and Boxes', nl: 'Stippen en Vakjes' },
   preferredOrientation: 'landscape',
-  description:
-    'Draw lines between dots to claim boxes. Claim the 4th side of a box and take another turn. Most boxes wins. Deceptively deep — the chain strategy will sneak up on you.',
+  description: {
+    en: 'Draw lines between dots to claim boxes. Claim the 4th side of a box and take another turn. Most boxes wins. Deceptively deep — the chain strategy will sneak up on you.',
+    nl: 'Trek lijnen tussen stippen om vakjes te claimen. Sluit de 4e zijde van een vakje en je speelt nog een keer. Wie de meeste vakjes heeft, wint. Verraderlijk diep — de ketenstrategie sluipt langs je heen.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {
