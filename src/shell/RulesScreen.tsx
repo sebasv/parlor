@@ -38,7 +38,7 @@ export function RulesScreen(props: Props) {
         <button type="button" class="rules-back" onClick={props.onBack}>
           ←
         </button>
-        <h2>{content()?.title ?? props.entry.title}</h2>
+        <h2>{content()?.title ?? props.entry.title[props.locale()]}</h2>
         <LocaleToggle locale={props.locale} setLocale={props.setLocale} />
       </header>
 

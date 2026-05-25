@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'tsuro',
-  title: 'Tsuro',
+  title: { en: 'Tsuro', nl: 'Tsuro' },
   preferredOrientation: 'landscape',
-  description:
-    'Place tiles to guide your pawn along winding paths. Fall off the board and you lose. Last pawn standing wins. 2–4 players, 10 minutes.',
+  description: {
+    en: 'Place tiles to guide your pawn along winding paths. Fall off the board and you lose. Last pawn standing wins. 2–4 players, 10 minutes.',
+    nl: 'Leg tegels om je pion langs kronkelende paden te leiden. Val je van het bord, dan ben je af. Laatste pion wint. 2–4 spelers, 10 minuten.',
+  },
   minPlayers: 2,
   maxPlayers: 4,
   rules: {

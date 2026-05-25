@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'order-and-chaos',
-  title: 'Order and Chaos',
+  title: { en: 'Order and Chaos', nl: 'Orde en Chaos' },
   preferredOrientation: 'landscape',
-  description:
-    'On a 6x6 grid, both players may place either X or O each turn. Order wins with five-in-a-row; Chaos wins by filling the board without one.',
+  description: {
+    en: 'On a 6x6 grid, both players may place either X or O each turn. Order wins with five-in-a-row; Chaos wins by filling the board without one.',
+    nl: 'Op een 6×6 rooster mogen beide spelers elke beurt een X of een O plaatsen. Order wint met vijf op een rij; Chaos wint als het bord vol raakt zonder rij van vijf.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

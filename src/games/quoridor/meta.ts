@@ -2,9 +2,11 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'quoridor',
-  title: 'Quoridor',
-  description:
-    'Race your pawn to the opposite side of a 9×9 board. Each turn: move one square or place a wall to block your opponent — but you can never fully wall someone off. Spatial and strategic, 5–10 min, two players.',
+  title: { en: 'Quoridor', nl: 'Quoridor' },
+  description: {
+    en: 'Race your pawn to the opposite side of a 9×9 board. Each turn: move one square or place a wall to block your opponent — but you can never fully wall someone off. Spatial and strategic, 5–10 min, two players.',
+    nl: 'Race met je pion naar de overkant van een 9×9 bord. Elke beurt: één vakje verzetten of een muur plaatsen om je tegenstander te blokkeren — maar je mag iemand nooit helemaal insluiten. Ruimtelijk en strategisch, 5–10 min, twee spelers.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   preferredOrientation: 'landscape',

@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'nim',
-  title: 'Nim',
+  title: { en: 'Nim', nl: 'Nim' },
   preferredOrientation: 'landscape',
-  description:
-    'Three piles of tokens. On your turn, take any number from one pile. Take the last token to win. The XOR strategy is hiding in plain sight.',
+  description: {
+    en: 'Three piles of tokens. On your turn, take any number from one pile. Take the last token to win. The XOR strategy is hiding in plain sight.',
+    nl: 'Drie stapeltjes fiches. Pak op je beurt zoveel je wilt uit één stapel. Wie de laatste fiche pakt, wint. De XOR-strategie ligt voor het oprapen.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

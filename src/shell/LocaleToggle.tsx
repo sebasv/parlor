@@ -1,5 +1,6 @@
 import { For } from 'solid-js'
 import { LOCALE_LABELS, LOCALES, type Locale } from '../lib/game'
+import { SHELL_STRINGS } from '../lib/strings'
 
 interface Props {
   locale: () => Locale
@@ -10,7 +11,9 @@ interface Props {
 export function LocaleToggle(props: Props) {
   return (
     <fieldset class="locale-toggle">
-      <legend class="locale-toggle-legend">{props.legend ?? 'Language'}</legend>
+      <legend class="locale-toggle-legend">
+        {props.legend ?? SHELL_STRINGS[props.locale()].language}
+      </legend>
       <For each={LOCALES}>
         {(l) => (
           <button

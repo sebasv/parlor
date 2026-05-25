@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'backgammon',
-  title: 'Backgammon',
+  title: { en: 'Backgammon', nl: 'Backgammon' },
   preferredOrientation: 'landscape',
-  description:
-    'Classic race-and-block game for two. Roll dice, move checkers, hit blots, bear off. First to clear all 15 checkers wins.',
+  description: {
+    en: 'Classic race-and-block game for two. Roll dice, move checkers, hit blots, bear off. First to clear all 15 checkers wins.',
+    nl: 'Klassiek race-en-blokkeerspel voor twee. Gooi de dobbelstenen, beweeg je schijven, sla blots en speel uit. Wie als eerste alle 15 schijven van het bord heeft, wint.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

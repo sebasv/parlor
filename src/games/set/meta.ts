@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'set',
-  title: 'Set',
+  title: { en: 'Set', nl: 'Set' },
   preferredOrientation: 'landscape',
-  description:
-    'Real-time pattern recognition. Spot three cards where every feature is all-same or all-different. First to claim a valid set earns a point.',
+  description: {
+    en: 'Real-time pattern recognition. Spot three cards where every feature is all-same or all-different. First to claim a valid set earns a point.',
+    nl: 'Patroonherkenning op snelheid. Vind drie kaarten waarbij elke eigenschap óf overal hetzelfde óf overal verschillend is. Wie als eerste een geldige set claimt, krijgt een punt.',
+  },
   minPlayers: 2,
   maxPlayers: 6,
   rules: {

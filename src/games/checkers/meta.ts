@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'checkers',
-  title: 'Checkers',
+  title: { en: 'Checkers', nl: 'Dammen' },
   preferredOrientation: 'landscape',
-  description:
-    'International Draughts (10×10): flying kings, mandatory captures, and men that capture in both directions. The Dutch standard.',
+  description: {
+    en: 'International Draughts (10×10): flying kings, mandatory captures, and men that capture in both directions. The Dutch standard.',
+    nl: 'Internationaal Dammen (10×10): vliegende dammen, verplicht slaan en schijven die in beide richtingen slaan. De Nederlandse standaard.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {

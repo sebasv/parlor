@@ -2,9 +2,11 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'ludo',
-  title: 'Ludo',
-  description:
-    'Classic race game for 2–4 players. Roll a 6 to release a pawn, race around the board, and be first to bring all four pawns home.',
+  title: { en: 'Ludo', nl: 'Ludo' },
+  description: {
+    en: 'Classic race game for 2–4 players. Roll a 6 to release a pawn, race around the board, and be first to bring all four pawns home.',
+    nl: 'Klassiek racespel voor 2–4 spelers. Gooi een 6 om een pion vrij te krijgen, race over het bord en breng als eerste al je vier pionnen thuis.',
+  },
   minPlayers: 2,
   maxPlayers: 4,
   preferredOrientation: 'landscape',

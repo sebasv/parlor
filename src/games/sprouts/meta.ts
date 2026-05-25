@@ -2,10 +2,12 @@ import type { GameMeta } from '../../lib/game'
 
 const meta: GameMeta = {
   id: 'sprouts',
-  title: 'Sprouts',
+  title: { en: 'Sprouts', nl: 'Sprouts' },
   preferredOrientation: 'landscape',
-  description:
-    'Start with dots, draw curves connecting them, and place a new dot on each curve. A dot dies when it has 3 connections. Last player to move wins. Topological and meditative.',
+  description: {
+    en: 'Start with dots, draw curves connecting them, and place a new dot on each curve. A dot dies when it has 3 connections. Last player to move wins. Topological and meditative.',
+    nl: 'Begin met stippen, teken curves die ze verbinden en zet een nieuwe stip op elke curve. Een stip sterft bij 3 verbindingen. Wie als laatste nog een zet kan doen, wint. Topologisch en meditatief.',
+  },
   minPlayers: 2,
   maxPlayers: 2,
   rules: {
